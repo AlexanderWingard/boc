@@ -1,0 +1,4 @@
+{:main boc.core
+ :output-dir "resources/public/cljs/dev"
+ :output-to "resources/public/cljs/main.js"
+}

@@ -1,0 +1,24 @@
+{:deps {org.clojure/clojure {:mvn/version "1.10.0"}
+        http-kit {:mvn/version "2.3.0"}
+        compojure {:mvn/version "1.6.1"}
+        reagent {:mvn/version "0.8.1"}
+        ring {:mvn/version "1.7.1"}
+        ring-cljsjs {:mvn/version "0.1.0"}
+        cljsjs/semantic-ui {:mvn/version "2.3.1-0"}}
+ :paths ["src" "target" "resources"]
+ :aliases {:cljsbuild {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.439"}}
+                       :main-opts ["-m" "cljs.main" "-co" "cljsbuild.edn" "--compile" "boc.core"]}
+           :cider {:extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
+                                com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
+                                cider/piggieback {:mvn/version "0.3.10"}}
+                   :main-opts ["--init" "src/boc/server.clj" "--eval" "(boc.server/-main)"]
+                   }
+
+           :figwheel {:extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
+                                com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
+                                cider/piggieback {:mvn/version "0.3.10"}}
+                   :main-opts ["--init" "src/boc/server.clj" "--eval" "(boc.server/-main)" "-m" "figwheel.main" "-b" "dev" "-r"]
+                   }
+           :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                                :sha "24863d1ff5a54bb7cc783ff62272212b51c8b316"}}
+                  :main-opts ["-m" "mach.pack.alpha.capsule" "boc.jar" "--main boc.server" "--extra-path" "resources"]}}}
