@@ -1,3 +1,31 @@
-body {
-    background-color: red;
+.big-logo {
+    margin-top: 4em;
+    margin-bottom: 2em;
+}
+.big-logo h1 {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-size: 84px;
+    text-align: center;
+    font-weight: lighter;
+    color: #444;
+}
+.big-logo div {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-size: 24px;
+    text-align: center;
+    font-weight: lighter;
+}
+.ws-status {
+    position: fixed;
+    top: 3px;
+    right: 3px;
+}
+@media only screen
+and (max-width: 736px) {
+    .big-logo h1 {
+        font-size: 24px;
+    }
+    .big-logo div {
+        font-size: 18px;
+    }
 }

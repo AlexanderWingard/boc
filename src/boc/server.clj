@@ -11,17 +11,30 @@
 (defonce channels (atom #{}))
 (defonce state (atom {}))
 (def stop-server (atom nil))
+; (broadcast (reset! state (select-keys @state [:seq-nr]))) 
 
 (defn broadcast [data]
   (let [s (pr-str data)]
     (doseq [c @channels] (send! c s))))
 
+(defn deep-merge [a b]
+  (if (map? a)
+    (merge-with deep-merge a b)
+    b))
+
+(defn handle-intent [data]
+  (case (:intent data)
+    "login" (-> data
+                (assoc-in [:username :error] "Wrong username")
+                (assoc-in [:login :error] true)
+                (dissoc :intent))
+    data))
+
 (defn ws-receive [channel string]
   (broadcast
    (swap! state #(-> %
-                     (merge (edn/read-string string))
-                     (update :first-name (fnil upper-case ""))
-                     (update :last-name (fnil upper-case ""))))))
+                     (deep-merge (edn/read-string string))
+                     (handle-intent)))))
 
 (defn ws-handler [req]
   (with-channel req channel
