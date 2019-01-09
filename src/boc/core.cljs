@@ -16,9 +16,11 @@
   (reduce-kv
    (fn [acc k new-val]
      (let [old-val (get old k)]
-       (if (map? new-val)
-         (if-some [child (deep-diff old-val new-val)] (assoc acc k child) acc)
-         (if (not= old-val new-val) (assoc acc k new-val) acc))))
+       (if (= old-val new-val)
+         acc
+         (if (map? new-val)
+           (if-some [child (deep-diff old-val new-val)] (assoc acc k child) acc)
+           (assoc acc k new-val)))))
    nil
    new))
 
