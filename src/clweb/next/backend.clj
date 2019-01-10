@@ -8,8 +8,6 @@
    [ring.middleware.cljsjs :refer [wrap-cljsjs]]
    ))
 
-(defrecord Server [stop port])
-
 (defn ws-handler [server req]
   (with-channel req channel
     ;; (swap! channels conj channel)
@@ -26,13 +24,15 @@
    (not-found "Page not found")))
 
 (defn server [port]
-  (map->Server {:port port}))
+  {::port port})
 
-(defn start [server]
+(defn start [{:keys [::port] :as server}]
   (-> server
-      (assoc :stop (run-server (site (create-routes server)) {:port (:port server)}))))
+      (update ::stop (fn [stop] (if (nil? stop)
+                                 (run-server (site (create-routes server)) {:port port})
+                                 stop)))))
 
 (defn stop [server]
-  ((:stop server))
   (-> server
-      (assoc :stop nil)))
+      (update ::stop (fn [stop] (when (some? stop)
+                                  (stop))))))
