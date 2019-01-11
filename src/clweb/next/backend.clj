@@ -23,8 +23,20 @@
    (wrap-cljsjs (resources "/"))
    (not-found "Page not found")))
 
-(defn server [port]
-  {::port port})
+(defn server [ & {:as args}]
+  (let [known #{::port ::on-connect ::on-close ::on-msg}
+        required #{::port}]
+    (reduce
+     (fn [acc kw]
+       (let [ukw (keyword (name kw))
+             v (get args ukw)]
+         (if (contains? required kw)
+           (assert (some? v) (str "Missing " ukw)))
+         (-> acc
+             (dissoc ukw)
+             (assoc kw v)))) args known)))
+
+(server )
 
 (defn start [{:keys [::port] :as server}]
   (-> server
