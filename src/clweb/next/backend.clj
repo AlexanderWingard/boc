@@ -23,20 +23,25 @@
    (wrap-cljsjs (resources "/"))
    (not-found "Page not found")))
 
-(defn server [ & {:as args}]
-  (let [known #{::port ::on-connect ::on-close ::on-msg}
-        required #{::port}]
+(defn kw-constructor [args & [known required internal]]
+  (let [req (if (= required :all) known required)]
     (reduce
      (fn [acc kw]
        (let [ukw (keyword (name kw))
              v (get args ukw)]
-         (if (contains? required kw)
+         (if (contains? req kw)
            (assert (some? v) (str "Missing " ukw)))
          (-> acc
              (dissoc ukw)
-             (assoc kw v)))) args known)))
+             (assoc kw v)))) (merge internal args) known)))
 
-(server )
+(defn server [ & {:as args}]
+  (kw-constructor args
+                  #{::port ::on-connect ::on-close ::on-msg}
+                  #{::port}
+                  {::state (atom nil)}))
+
+(server :port 8080)
 
 (defn start [{:keys [::port] :as server}]
   (-> server
