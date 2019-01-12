@@ -1,6 +1,7 @@
 (ns clweb.next.backend
   (:require
-   [org.httpkit.server :refer [run-server with-channel]]
+   [clojure.edn :as edn]
+   [org.httpkit.server :refer [run-server with-channel send! on-close on-receive]]
    [compojure.handler :refer [site]]
    [compojure.route :refer [not-found resources]]
    [compojure.core :refer [GET routes]]
@@ -10,11 +11,12 @@
 
 (defn ws-handler [server req]
   (with-channel req channel
-    ;; (swap! channels conj channel)
-    ;; (broadcast @state)
-    ;; (on-close channel (fn [status] (swap! channels disj channel)))
-    ;; (on-receive channel (partial (var ws-receive) channel))
-    ))
+    (when-some [cb (::on-connect server)]
+      (cb channel (::state server)))
+    (when-some [cb (::on-close server)]
+      (on-close channel (fn [status] (cb channel (::state server)))))
+    (when-some [cb (::on-msg server)]
+      (on-receive channel (fn [string] (cb channel (::state server) (edn/read-string string)))))))
 
 (defn create-routes [server]
   (routes
@@ -41,7 +43,26 @@
                   #{::port}
                   {::state (atom nil)}))
 
-(server :port 8080)
+(def s (server :port 1986
+               :on-connect
+               (fn [channel state]
+                 (swap! state assoc-in [::sessions channel] nil))
+
+               :on-close
+               (fn [channel state]
+                 (swap! state update-in [::sessions] dissoc channel))
+
+               :on-msg
+               (fn [channel state msg])))
+(def example {::sessions {"uuid" #{"1"}}})
+(update-in example [::sessions] (fn [ses] (into {} (map (fn [[k v]] [k (disj v "1")]) ses))))
+(update-in example [::sessions "uuid"] conj "2")
+
+(defn broadcast [state uuid msg]
+  (let [string (pr-str msg)]
+    (doseq [c @channels] (send! c s))))
+
+(defn switch-session [channel uuid])
 
 (defn start [{:keys [::port] :as server}]
   (-> server
