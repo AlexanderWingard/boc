@@ -1,6 +1,7 @@
 {:deps {org.clojure/clojure {:mvn/version "1.10.0"}
         http-kit {:mvn/version "2.3.0"}
         compojure {:mvn/version "1.6.1"}
+        com.rpl/specter {:mvn/version "1.1.2"}
         reagent {:mvn/version "0.8.1"}
         ring {:mvn/version "1.7.1"}
         ring-cljsjs {:mvn/version "0.1.0"}
