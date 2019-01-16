@@ -11,9 +11,19 @@
 
 (deftest sessions
   (-> {}
-      (state/join-session "channel" "uuid")
-      (s-assert [:sessions s/ALL :channels (s/set-elem "channel")] ["channel"])
-      (state/join-session "channel" "uuid2")
-      (s-assert [:sessions s/ALL (s/selected? [:data :session (s/pred= "uuid")]) :channels (s/set-elem "channel")] []))
-  )
+      (state/join-session "c-1" "s-1")
+      (s-assert (state/channels-path "s-1") ["c-1"])
+      (state/join-session "c-1" "s-2")
+      (s-assert (state/channels-path "s-1") [])
+      (s-assert (state/channels-path "s-2") ["c-1"])
+      (state/leave "c-1")
+      (s-assert (state/channels-path "s-2") [])))
+
+(deftest data
+  (-> {}
+      (state/join-session "c-1" "s-1")
+      (state/update-data "s-1" {:test-data "test"})
+      (s-assert (state/data-path "s-1") [{:session "s-1" :test-data "test"}])
+      (state/broadcast "s-1")
+      ))
 

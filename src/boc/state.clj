@@ -5,6 +5,15 @@
   (println arg)
   arg)
 
+(defn session-path [uuid]
+  [:sessions s/ALL (s/selected? [:data :session (s/pred= uuid)])])
+
+(defn channels-path [uuid]
+  [(session-path uuid) :channels s/ALL])
+
+(defn data-path [uuid]
+  [(session-path uuid) :data])
+
 (defn join-session [state channel uuid]
   (s/multi-transform
    [:sessions
@@ -16,37 +25,16 @@
                   )]
    state))
 
-(-> {}
-    (log)
-    (join-session "chan" "uuid")
-    (log)
-    (join-session "chan" "uuid")
-    (log)
-    (join-session "chan" "uuid2")
-    (log))
-
 (defn leave [state channel]
   (s/setval [:sessions s/MAP-VALS :channels (s/subset #{channel})] #{} state))
 
-(defn update-data [state session data]
-  (s/setval [:sessions session :data] data state))
+(defn deep-merge [a b]
+  (if (map? a)
+    (merge-with deep-merge a b)
+    b))
 
-(defn broadcast [state session]
-  (s/select-one [:sessions session (s/collect-one :data) :channels] state)
-  state)
+(defn update-data [state uuid data]
+  (s/transform (data-path uuid) #(deep-merge % data) state))
 
-(defn test [state session]
-  (s/select [:sessions s/MAP-VALS :data #(= (:session %) session)] state))
-
-
-
-(s/setval [:sessions  s/ALL :data :session (s/pred= 5) (s/nil->val 20)]
-          10
-          {:sessions [{:data {:session 1}}{:data {:session 2}}]})
-
-(s/multi-transform
- [(s/if-path [s/ALL (s/pred= :a)]
-           [s/ALL (s/pred= :a) (s/terminal-val :c)]
-           [s/AFTER-ELEM (s/terminal-val :DEFAULT)]
-           )]
- [:a :d :a])
+(defn broadcast [state uuid]
+  (s/select-one [(session-path uuid) (s/collect-one :data) :channels] state))
