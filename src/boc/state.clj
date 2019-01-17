@@ -29,12 +29,18 @@
   (s/setval [:sessions s/MAP-VALS :channels (s/subset #{channel})] #{} state))
 
 (defn deep-merge [a b]
-  (if (map? a)
+  (if (and (map? a) (map? b))
     (merge-with deep-merge a b)
     b))
 
+(defn login [state uuid user]
+  (s/setval [(data-path uuid) :user] user state))
+
+(defn logout [state uuid ]
+  (s/setval [(data-path uuid) :user] s/NONE state))
+
 (defn update-data [state uuid data]
-  (s/transform (data-path uuid) #(deep-merge % data) state))
+  (s/transform (data-path uuid) #(deep-merge % (dissoc data :session :user)) state))
 
 (defn broadcast [state uuid]
   (s/select-one [(session-path uuid) (s/collect-one :data) :channels] state))

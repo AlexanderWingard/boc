@@ -1,55 +1,26 @@
 (ns boc.server
-  (:require [clojure.edn :as edn]
-            [clojure.string :refer [upper-case]]
-            [compojure.core :refer [defroutes GET]]
-            [compojure.handler :refer [site]]
-            [compojure.route :refer [not-found resources]]
-            [org.httpkit.server :refer [on-close on-receive send! run-server with-channel]]
-            [ring.util.response :refer [resource-response response]]
-            [ring.middleware.cljsjs :refer [wrap-cljsjs]]))
+  (:require
+   [boc.state :as state]
+   [clweb.next.backend :as be]
+   [org.httpkit.server :refer [send!]]
+   ))
 
-(defonce channels (atom #{}))
-(defonce state (atom {}))
-(def stop-server (atom nil))
-; (broadcast (reset! state (select-keys @state [:seq-nr]))) 
+(defn on-msg [channel state {:keys [session] :as msg}]
+  (case (:intent msg)
+    :join-session (swap! state state/join-session channel session)
+    nil)
+  (swap! state state/update-data session (assoc msg :intent nil))
+  (let [[data channels] (state/broadcast @state session)
+        string (pr-str data)]
+    (doseq [c channels] (send! c string))))
 
-(defn broadcast [data]
-  (let [s (pr-str data)]
-    (doseq [c @channels] (send! c s))))
+(defn on-close [channel state]
+  (swap! state state/leave channel))
 
-(defn deep-merge [a b]
-  (if (map? a)
-    (merge-with deep-merge a b)
-    b))
-
-(defn handle-intent [data]
-  (case (:intent data)
-    "login" (-> data
-                (assoc-in [:username :error] "Wrong username")
-                (assoc-in [:login :error] true)
-                (dissoc :intent))
-    data))
-
-(defn ws-receive [channel string]
-  (broadcast
-   (swap! state #(-> %
-                     (deep-merge (edn/read-string string))
-                     (handle-intent)))))
-
-(defn ws-handler [req]
-  (with-channel req channel
-    (swap! channels conj channel)
-    (broadcast @state)
-    (on-close channel (fn [status] (swap! channels disj channel)))
-    (on-receive channel (partial (var ws-receive) channel))))
-
-(defroutes routes
-  (GET "/" [] (resource-response "main.html" {:root "public"}))
-  (GET "/ws" [] ws-handler)
-  (wrap-cljsjs (resources "/"))
-  (not-found "Page not found"))
-
+(defonce server (atom (be/server :port 8080
+                                 :on-msg (var on-msg)
+                                 :on-close (var on-close))))
 (defn -main
   [& args]
-  (reset! stop-server (run-server (site (var routes)) {:port 8080}))
+  (swap! server be/start)
   (println "http://localhost:8080"))

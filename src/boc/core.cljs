@@ -21,16 +21,22 @@
          (if (map? new-val)
            (if-some [child (deep-diff old-val new-val)] (assoc acc k child) acc)
            (assoc acc k new-val)))))
-   nil
+   (select-keys new [:session])
    new))
 
 (defn ws-receive [data]
   (when (>= (:seq-nr data) (:seq-nr @state))
     (reset! state data)))
 
+(defn join-session [ws uuid]
+  (->> (reset! state {:intent :join-session
+                      :session uuid})
+       (ws/send ws)))
+
 (defonce ws (ws/new "ws"
                    #((var ws-receive) %)
-                   #(reset! ws-state "online")
+                   #(do (reset! ws-state "online")
+                        (join-session ws "random-uuid"))
                    #(reset! ws-state "offline")))
 
 (defn client-side-update [ks value]

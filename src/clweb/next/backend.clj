@@ -54,15 +54,6 @@
 
                :on-msg
                (fn [channel state msg])))
-(def example {::sessions {"uuid" #{"1"}}})
-(update-in example [::sessions] (fn [ses] (into {} (map (fn [[k v]] [k (disj v "1")]) ses))))
-(update-in example [::sessions "uuid"] conj "2")
-
-(defn broadcast [state uuid msg]
-  (let [string (pr-str msg)]
-    (doseq [c @channels] (send! c s))))
-
-(defn switch-session [channel uuid])
 
 (defn start [{:keys [::port] :as server}]
   (-> server
