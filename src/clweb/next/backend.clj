@@ -1,5 +1,6 @@
 (ns clweb.next.backend
   (:require
+   [axw.keyword-constructor :as kwc]
    [clojure.edn :as edn]
    [org.httpkit.server :refer [run-server with-channel send! on-close on-receive]]
    [compojure.handler :refer [site]]
@@ -25,35 +26,11 @@
    (wrap-cljsjs (resources "/"))
    (not-found "Page not found")))
 
-(defn kw-constructor [args & [known required internal]]
-  (let [req (if (= required :all) known required)]
-    (reduce
-     (fn [acc kw]
-       (let [ukw (keyword (name kw))
-             v (get args ukw)]
-         (if (contains? req kw)
-           (assert (some? v) (str "Missing " ukw)))
-         (-> acc
-             (dissoc ukw)
-             (assoc kw v)))) (merge internal args) known)))
-
 (defn server [ & {:as args}]
-  (kw-constructor args
-                  #{::port ::on-connect ::on-close ::on-msg}
-                  #{::port}
-                  {::state (atom nil)}))
-
-(def s (server :port 1986
-               :on-connect
-               (fn [channel state]
-                 (swap! state assoc-in [::sessions channel] nil))
-
-               :on-close
-               (fn [channel state]
-                 (swap! state update-in [::sessions] dissoc channel))
-
-               :on-msg
-               (fn [channel state msg])))
+  (kwc/create args
+              #{::port ::on-connect ::on-close ::on-msg}
+              #{::port}
+              {::state (atom nil)}))
 
 (defn start [{:keys [::port] :as server}]
   (-> server
