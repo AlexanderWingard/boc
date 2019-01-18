@@ -28,7 +28,7 @@
    (wrap-cljsjs (resources "/"))
    (not-found "Page not found")))
 
-(defn server [ & {:as args}]
+(defn new [ & {:as args}]
   (atom (kwc/create args
                     #{::port ::on-connect ::on-close ::on-msg}
                     #{::port}
@@ -37,8 +37,14 @@
 (defn start [s]
   (swap! s update ::stop (fn [stop] (if (nil? stop)
                                       (run-server (site (create-routes s)) {:port (::port @s)})
-                                      stop))))
+                                      stop)))
+  s)
 
 (defn stop [s]
   (swap! s update ::stop (fn [stop] (when (some? stop)
-                              (stop)))))
+                                      (stop))))
+  s)
+
+(defn print-url [s]
+  (println (str "http://localhost:" (::port @s)))
+  s)

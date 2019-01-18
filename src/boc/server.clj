@@ -1,7 +1,7 @@
 (ns boc.server
   (:require
    [boc.state :as state]
-   [axw.ws-server :as be]
+   [axw.ws-server :as server]
    ))
 
 (defn on-msg [channel state msg]
@@ -11,15 +11,12 @@
     (swap! state #(-> %
                       (state/handle-intent intent msg channel session)
                       (state/update-data session msg)
-                      (state/broadcast session be/send!)))))
+                      (state/broadcast session server/send!)))))
 
 (defn on-close [channel state]
   (swap! state state/leave channel))
 
-(defonce server (be/server :port 8080
-                           :on-msg (var on-msg)
-                           :on-close (var on-close)))
-(defn -main
-  [& args]
-  (be/start server)
-  (println "http://localhost:8080"))
+(defn -main [& args]
+  (-> (server/new :port 8080 :on-msg (var on-msg) :on-close (var on-close))
+      (server/start)
+      (server/print-url)))

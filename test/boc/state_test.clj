@@ -19,17 +19,6 @@
       (state/leave "c-1")
       (s-assert (state/channels-path "s-2") [])))
 
-(deftest data
-  (-> {}
-      (state/join-session "c-1" "s-1")
-      (state/update-data "s-1" {:test-data "test"})
-      (state/update-data "s-1" {:session "s-2"})
-      (s-assert (state/data-path "s-1") [{:session "s-1" :test-data "test"}])
-      (state/broadcast "s-1")
-      )
-  (-> {}
-      (state/update-data nil {:test-data "test"})))
-
 (deftest users
   (-> {}
       (state/join-session "c-1" "s-1")
