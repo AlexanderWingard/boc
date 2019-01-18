@@ -1,26 +1,25 @@
 (ns boc.server
   (:require
    [boc.state :as state]
-   [clweb.next.backend :as be]
-   [org.httpkit.server :refer [send!]]
+   [axw.ws-server :as be]
    ))
 
-(defn on-msg [channel state {:keys [session] :as msg}]
-  (case (:intent msg)
-    :join-session (swap! state state/join-session channel session)
-    nil)
-  (swap! state state/update-data session (assoc msg :intent nil))
-  (let [[data channels] (state/broadcast @state session)
-        string (pr-str data)]
-    (doseq [c channels] (send! c string))))
+(defn on-msg [channel state msg]
+  (let [session (:session msg)
+        intent (:intent msg)
+        msg (dissoc msg :session :intent)]
+    (swap! state #(-> %
+                      (state/handle-intent intent msg channel session)
+                      (state/update-data session msg)
+                      (state/broadcast session be/send!)))))
 
 (defn on-close [channel state]
   (swap! state state/leave channel))
 
-(defonce server (atom (be/server :port 8080
-                                 :on-msg (var on-msg)
-                                 :on-close (var on-close))))
+(defonce server (be/server :port 8080
+                           :on-msg (var on-msg)
+                           :on-close (var on-close)))
 (defn -main
   [& args]
-  (swap! server be/start)
+  (be/start server)
   (println "http://localhost:8080"))

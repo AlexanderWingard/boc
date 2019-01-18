@@ -40,7 +40,16 @@
   (s/setval [(data-path uuid) :user] s/NONE state))
 
 (defn update-data [state uuid data]
-  (s/transform (data-path uuid) #(deep-merge % (dissoc data :session :user)) state))
+  (s/transform (data-path uuid) #(deep-merge % data) state))
 
-(defn broadcast [state uuid]
-  (s/select-one [(session-path uuid) (s/collect-one :data) :channels] state))
+(defn broadcast [state uuid cb]
+  (let [[data channels] (s/select-one [(session-path uuid) (s/collect-one :data) :channels] state)
+        string (pr-str data)]
+    (doseq [c channels] (cb c string)))
+  state)
+
+(defn handle-intent [state intent msg channel session]
+  (case intent
+    :join-session (join-session state channel session)
+    :login state
+    state))
