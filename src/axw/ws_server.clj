@@ -30,9 +30,9 @@
 
 (defn new [ & {:as args}]
   (atom (kwc/create args
-                    #{::port ::on-connect ::on-close ::on-msg}
+                    #{::port ::on-connect ::on-close ::on-msg ::state}
                     #{::port}
-                    {::state (atom nil)})))
+                    {:state (atom nil)})))
 
 (defn start [s]
   (swap! s update ::stop (fn [stop] (if (nil? stop)

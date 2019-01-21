@@ -1,13 +1,14 @@
 (ns axw.keyword-constructor)
 
-(defn create [args & [known required internal]]
-  (let [req (if (= required :all) known required)]
+(defn create [args & [known required defaults]]
+  (let [req (if (= required :all) known required)
+        defaults-merged (merge defaults args)]
     (reduce
      (fn [acc kw]
        (let [ukw (keyword (name kw))
-             v (get args ukw)]
+             v (get defaults-merged ukw)]
          (if (contains? req kw)
            (assert (some? v) (str "Missing " ukw)))
          (-> acc
              (dissoc ukw)
-             (assoc kw v)))) (merge internal args) known)))
+             (assoc kw v)))) defaults-merged known)))
