@@ -7,7 +7,7 @@
 (defn on-msg [channel state msg]
   (let [session (:session msg)
         intent (:intent msg)
-        msg (dissoc msg :session :intent)]
+        msg (dissoc msg :session :intent :private)]
     (swap! state #(-> %
                       (state/update-data session msg)
                       (state/handle-intent intent channel session)

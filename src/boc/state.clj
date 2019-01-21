@@ -43,22 +43,17 @@
 
 (defn login [state uuid]
   (->> state
-       (s/multi-transform [(s/collect-one s/STAY)
-                           (data-path uuid)
-                           (s/multi-path
-                            [(s/collect-one [:username :value]):password (s/collect-one :value) :error (s/terminal validate-password)]
-                            [:username (s/collect-one :value) :error (s/terminal validate-user)]
-                            [(s/collect[(s/submap [:username :password]) s/MAP-VALS :error #(some? %)])
-                             :login :error (s/terminal (fn [_ errors _] (if (empty? errors) s/NONE errors)))])])))
-
-(->> {:session "random-uuid",
-     :seq-nr 22,
-     :username {:value "dddasd", :error "apa"},
-     :password {:error 9, :value "dadssdddd"}}
-     (s/transform [
-                   (s/collect[(s/submap [:username :password]) s/MAP-VALS :error #(some? %)])
-                   :login :error]
-                  (fn [errors _] errors)))
+       (s/multi-transform
+        [(s/collect-one s/STAY)
+         (data-path uuid)
+         (s/multi-path
+          [(s/collect-one [:username :value]):password (s/collect-one :value) :error (s/terminal validate-password)]
+          [:username (s/collect-one :value) :error (s/terminal validate-user)]
+          [(s/collect[(s/submap [:username :password]) s/MAP-VALS :error #(some? %)])
+           :login (s/compact [:error (s/terminal (fn [_ errors _] (if (empty? errors) s/NONE errors)))])]
+          [(s/if-path [(s/not-selected? (s/must :login))]
+                      [(s/collect-one [:username :value]) :private :user (s/terminal (fn [state user _] (user-by-name state user)))]
+                      [:private :user (s/terminal-val s/NONE)])])])))
 
 (defn leave [state channel]
   (s/setval [:sessions s/MAP-VALS :channels (s/subset #{channel})] #{} state))
