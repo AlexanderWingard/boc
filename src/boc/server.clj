@@ -5,16 +5,10 @@
    ))
 
 (defn on-msg [channel state msg]
-  (let [session (:session msg)
-        intent (:intent msg)
-        msg (dissoc msg :session :intent :private)]
-    (swap! state #(-> %
-                      (state/update-data session msg)
-                      (state/handle-intent intent channel session)
-                      (state/broadcast session server/send!)))))
+  (swap! state state/handle-msg channel msg))
 
 (defn on-close [channel state]
-  (swap! state state/leave channel))
+  (swap! state state/handle-msg channel {:intent :leave}))
 
 (defonce state (atom {:users [
                               {:id 1 :username "andrej" :password "123"}

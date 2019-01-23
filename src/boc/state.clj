@@ -1,5 +1,7 @@
 (ns boc.state
-  (:require [com.rpl.specter :as s]))
+  (:require
+   [axw.ws-server :as server]
+   [com.rpl.specter :as s]))
 
 (defn log [arg]
   (println arg)
@@ -21,7 +23,8 @@
     (s/multi-path [(s/cond-path (s/not-selected? [s/ALL :data :session (s/pred= uuid)])
                                 [s/AFTER-ELEM (s/terminal-val {:data {:session uuid}})])]
                   [s/ALL :channels s/NIL->SET (s/subset #{channel}) (s/terminal-val #{})]
-                  [s/ALL (s/selected? [:data :session (s/pred= uuid)]) :channels s/NIL->SET (s/subset #{channel})(s/terminal-val #{channel})]
+                  [s/ALL (s/selected? [:data :session (s/pred= uuid)]) (s/multi-path [:channels s/NIL->SET (s/subset #{channel})(s/terminal-val #{channel})]
+                                                                                     [(s/collect-one :channels) :data :clients (s/terminal (fn [channels _] (count channels)))])]
                   )]
    state))
 (def state {:users [{:id 1 :username "andrej"} {:id 2 :username "alex" :password "apa"}]})
@@ -51,7 +54,10 @@
      state)))
 
 (defn leave [state channel]
-  (s/setval [:sessions s/MAP-VALS :channels (s/subset #{channel})] #{} state))
+  (s/multi-transform [:sessions s/MAP-VALS (s/multi-path
+                                            [:channels (s/subset #{channel}) (s/terminal-val #{})]
+                                            [(s/collect-one :channels) :data :clients (s/terminal (fn [channels _] (count channels)))])]
+                     state))
 
 (defn deep-merge [a b]
   (if (and (map? a) (map? b))
@@ -64,14 +70,24 @@
 (defn update-data [state uuid data]
   (s/transform (data-path uuid) #(deep-merge % data) state))
 
-(defn broadcast [state uuid cb]
-  (let [[data channels] (s/select-one [(session-path uuid) (s/collect-one :data) :channels] state)
-        string (pr-str data)]
-    (doseq [c channels] (cb c string)))
+(defn broadcast [state]
+  (doseq [[data channels] (s/select [:sessions s/ALL (s/collect-one :data) :channels] state)]
+    (let [string (pr-str data)]
+      (doseq [c channels] (server/send! c string))))
   state)
 
 (defn handle-intent [state intent channel session]
   (case intent
     :join-session (join-session state channel session)
     :login (login state session)
+    :leave (leave state channel)
     state))
+
+(defn handle-msg [state channel msg]
+  (let [session (or (:session msg) (rand-nth ["default-1" "default-2"]))
+        intent (:intent msg)
+        msg (dissoc msg :session :intent :private)]
+    (-> state
+        (update-data session msg)
+        (handle-intent intent channel session)
+        (broadcast))))

@@ -38,7 +38,7 @@
 
 (defn ws-open []
   (reset! ws-state "online")
-  (update-state-reset {:intent :join-session :session "random-uuid"}))
+  (update-state-reset {:intent :join-session}))
 
 (defn ws-close []
   (reset! ws-state "offline"))
