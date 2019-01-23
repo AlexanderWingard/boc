@@ -20,8 +20,21 @@
     top: 3px;
     right: 3px;
 }
+.debug {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: -1;
+    color: #ddd;
+    font-size: 0.8rem ;
+    line-height: initial;
+    white-space: pre-wrap;
+}
 @media only screen
 and (max-width: 736px) {
+    body {
+        padding: 20px;
+    }
     .big-logo h1 {
         font-size: 24px;
     }
