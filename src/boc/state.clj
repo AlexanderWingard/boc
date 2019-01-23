@@ -1,7 +1,5 @@
 (ns boc.state
-  (:require
-   [axw.ws-server :as server]
-   [com.rpl.specter :as s]))
+  (:require [com.rpl.specter :as s]))
 
 (defn log [arg]
   (println arg)
@@ -70,11 +68,8 @@
 (defn update-data [state uuid data]
   (s/transform (data-path uuid) #(deep-merge % data) state))
 
-(defn broadcast [state]
-  (doseq [[data channels] (s/select [:sessions s/ALL (s/collect-one :data) :channels] state)]
-    (let [string (pr-str data)]
-      (doseq [c channels] (server/send! c string))))
-  state)
+(defn data-and-channels [state]
+  (s/select [:sessions s/ALL (s/collect-one :data) :channels] state))
 
 (defn handle-intent [state intent channel session]
   (case intent
@@ -89,5 +84,4 @@
         msg (dissoc msg :session :intent :private)]
     (-> state
         (update-data session msg)
-        (handle-intent intent channel session)
-        (broadcast))))
+        (handle-intent intent channel session))))

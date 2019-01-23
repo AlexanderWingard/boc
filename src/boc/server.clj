@@ -4,11 +4,19 @@
    [axw.ws-server :as server]
    ))
 
+(defn broadcast [state]
+  (let [state-str (with-out-str (clojure.pprint/pprint state))]
+    (doseq [[data channels] (state/data-and-channels state)]
+      (let [string (pr-str (assoc data :debug state-str))]
+        (doseq [c channels] (server/send! c string))))))
+
 (defn on-msg [channel state msg]
-  (swap! state state/handle-msg channel msg))
+  (-> state
+      (swap! state/handle-msg channel msg)
+      (broadcast)))
 
 (defn on-close [channel state]
-  (swap! state state/handle-msg channel {:intent :leave}))
+  (on-msg channel state {:intent :leave}))
 
 (defonce state (atom {:users [
                               {:id 1 :username "andrej" :password "123"}

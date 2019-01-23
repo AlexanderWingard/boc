@@ -8,7 +8,7 @@
   [:i.ws-status {:class (if (data/is-online) ["blue" "cloud" "icon"]["red" "x" "icon"])}])
 
 (defn state-debug []
-  [:pre {:style {:position "absolute" :top "0px" :left "0px"}} (with-out-str (pprint @data/state))])
+  [:pre {:style {:position "absolute" :top "0px" :left "0px" :z-index "-1" :color "#999"}} (:debug @data/state)])
 
 (defn input-field [key label]
   (let [state @data/state
