@@ -1,7 +1,7 @@
-(ns boc.core
+(ns boc.fe.core
   (:require
    [axw.ws :as ws]
-   [boc.general-components :as gc]
+   [boc.fe.components.general :as gc]
    [cljsjs.semantic-ui :as sem]
    [reagent.core :as r]
    ))

@@ -23,7 +23,7 @@
 
 (defn create-routes [server]
   (routes
-   (GET "/" [] (resource-response "main.html" {:root "public"}))
+   (GET "/" [] (resource-response "index.html" {:root "public"}))
    (GET "/ws" [] (partial ws-handler server))
    (wrap-cljsjs (resources "/"))
    (not-found "Page not found")))

@@ -1,11 +1,12 @@
-(ns boc.server
+(ns boc.be.core
   (:require
-   [boc.state :as state]
+   [boc.be.state.core :as state]
    [axw.ws-server :as server]
+   [clojure.pprint :refer [pprint]]
    ))
 
 (defn broadcast [state]
-  (let [state-str (with-out-str (clojure.pprint/pprint state))]
+  (let [state-str (with-out-str (pprint state))]
     (doseq [[data channels] (state/data-and-channels state)]
       (let [string (pr-str (assoc data :debug state-str))]
         (doseq [c channels] (server/send! c string))))))
@@ -16,7 +17,7 @@
       (broadcast)))
 
 (defn on-close [channel state]
-  (on-msg channel state {:intent :leave}))
+  (on-msg channel state {:intent :leave-session}))
 
 (defonce state (atom {:users [
                               {:id 1 :username "andrej" :password "123"}
