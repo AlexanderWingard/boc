@@ -1,28 +1,28 @@
 (ns boc.state-test
   (:require
-   [boc.state :as state]
+   [boc.be.state.users :as users]
    [com.rpl.specter :as s]
    [clojure.test :as t :refer [deftest is testing]]
+   [axw.util :refer [deep-merge]]
    ))
 
 (defn s-assert [data select expected]
   (is (= expected (s/select select data)))
   data)
 
-(deftest sessions
-  (-> {}
-      (state/join-session "c-1" "s-1")
-      (s-assert (state/channels-path "s-1") ["c-1"])
-      (state/join-session "c-1" "s-2")
-      (s-assert (state/channels-path "s-1") [])
-      (s-assert (state/channels-path "s-2") ["c-1"])
-      (state/leave "c-1")
-      (s-assert (state/channels-path "s-2") [])))
+(defn s-setval [structure apath aval]
+  (s/setval apath aval structure))
 
-(deftest users
-  (-> {}
-      (state/join-session "c-1" "s-1")
-      (state/login "s-1" "alex")
-      (state/update-data "s-1" {:user "fraud"})
-      (state/logout "s-1")
-      ))
+(deftest login
+  (-> {:users [{:username "alex" :password "123"}]
+       :sessions [{:data {:session "uuid" :username {:value "andrej"}}}]}
+      (users/login "uuid")
+      (s-assert [:sessions s/FIRST :data (s/multi-path [:username :error] [:password :error])] ["User andrej not found" nil])
+      (s-setval [:sessions s/FIRST :data :username :value] "alex")
+      (users/login "uuid")
+      (s-assert [:sessions s/FIRST :data (s/multi-path [:username :error] [:password :error])] [nil "Wrong password for user alex"])
+      (s-setval [:sessions s/FIRST :data :password :value] "123")
+      (users/login "uuid")
+      (s-assert [:sessions s/FIRST :data (s/multi-path [:username :error] [:password :error])] [nil nil])))
+
+
