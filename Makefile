@@ -1,4 +1,7 @@
-.PHONY: fig jar
+.PHONY: fig jar test
+
+test:
+	clojure -A:test
 
 fig:
 	clojure -A:figwheel
