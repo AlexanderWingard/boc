@@ -6,50 +6,51 @@
    [boc.test-util :refer :all]
    [boc.be.state.paths :as paths]))
 
+(def initial {:users [{:username "alex" :password "123"}]
+              :sessions [{:data {:session "uuid"}}]})
+(def error-assert (partial mk-error-assert "uuid"))
+(def set-value (partial mk-set-value "uuid"))
+(def do-login #(users/login % "uuid"))
+(def do-register #(users/register % "uuid"))
+
 (deftest login
-  (let [initial {:users [{:username "alex" :password "123"}]
-                 :sessions [{:data {:session "uuid"}}]}
-        session-data (paths/data "uuid")]
-    (-> initial
-        (s-setval [session-data :username :value] "andrej")
-        (users/login "uuid")
-        (s-assert [session-data :username :error] ["User andrej not found"])
-        (s-assert [session-data :password :error] [nil])
+  (-> initial
+      (set-value :username "andrej")
+      (do-login)
+      (error-assert :username "User andrej not found")
+      (error-assert :password nil)
 
-        (s-setval [session-data :username :value] "alex")
-        (users/login "uuid")
-        (s-assert [session-data :password :error] ["Wrong password for user alex"])
+      (set-value :username "alex")
+      (do-login)
+      (error-assert :password "Wrong password for user alex")
 
-        (s-setval [session-data :password :value] "123")
-        (users/login "uuid")
-        (s-assert [session-data :username :error] [nil])
-        (s-assert [session-data :password :error] [nil])
-        )))
+      (set-value :password "123")
+      (do-login)
+      (error-assert :username nil)
+      (error-assert :password nil)
+      ))
 
 (deftest register
-  (let [initial {:users [{:username "alex" :password "123"}]
-                 :sessions [{:data {:session "uuid"}}]}
-        session-data (paths/data "uuid")]
-    (-> initial
-        (users/register "uuid")
-        (s-assert [session-data :username :error] ["Please supply username"])
+  (-> initial
+      (do-register)
+      (error-assert :username "Please supply username")
 
-        (s-setval [session-data :username :value] "alex")
-        (users/register "uuid")
-        (s-assert [session-data :username :error] ["User alex already exists"])
+      (set-value :username "alex")
+      (do-register)
+      (error-assert :username "User alex already exists")
 
-        (s-setval [session-data :username :value] "andrej")
-        (users/register "uuid")
-        (s-assert [session-data :password :error] ["Please supply password"])
-        (s-assert [session-data :username :error] [nil])
+      (set-value :username "andrej")
+      (do-register)
+      (error-assert :password "Please supply password")
+      (error-assert :username nil)
 
-        (s-setval [session-data :password :value] "123")
-        (users/register "uuid")
-        (s-assert [session-data :password-repeat :error] ["Passwords must match"])
-        (s-assert [session-data :register :error] [["Passwords must match"]])
+      (set-value :password "123")
+      (do-register)
+      (error-assert :password-repeat "Passwords must match")
+      (error-assert :register ["Passwords must match"])
 
-        (s-setval [session-data :password-repeat :value] "123")
-        (users/register "uuid")
-        (s-assert [session-data :register :error] [[]])
-        (apply-assert users/user-by-name "andrej" {:username "andrej" :password "123"})
-        )))
+      (set-value :password-repeat "123")
+      (do-register)
+      (error-assert :register [])
+      (apply-assert users/user-by-name "andrej" {:username "andrej" :password "123"})
+      ))
