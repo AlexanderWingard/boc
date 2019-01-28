@@ -32,7 +32,8 @@
        [:password :error
         (validate (cond (and (some? found-user) (not correct)) (str "Wrong password for user " username)))]
        (field-errors fields :login)
-       [:private :user (s/terminal (fn [_] (if correct found-user s/NONE)))])]
+       [:private :user
+        (validate correct found-user)])]
      state)))
 
 (defn register [state session]
