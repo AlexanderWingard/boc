@@ -9,7 +9,8 @@
  :paths ["src" "target" "resources"]
  :aliases {:cljsbuild {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.439"}}
                        :main-opts ["-m" "cljs.main" "-co" "cljsbuild.edn" "--compile" "boc.fe.core"]}
-           :cider {:extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
+           :cider {:extra-paths ["test"]
+                   :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
                                 com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
                                 cider/piggieback {:mvn/version "0.3.10"}}
                    :main-opts ["--init" "src/boc/be/core.clj" "--eval" "(boc.be.core/-main)"]

@@ -22,5 +22,5 @@
 
 (defn intent-button [key label]
   [:button.ui.button {:on-click #(state/update-state-field [:intent] key)
-                      :class (when (some? (get-in @state/state [key :error])) "red")}
+                      :class (when (not-empty (get-in @state/state [key :error])) "red")}
    label])

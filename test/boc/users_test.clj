@@ -1,4 +1,4 @@
-(ns boc.state-test
+(ns boc.users-test
   (:require
    [boc.be.state.users :as users]
    [boc.be.state.paths :as paths]
