@@ -28,12 +28,15 @@
      [(paths/data session)
       (s/multi-path
        [:username :error
-        (validate (cond (nil? found-user) (str "User " username " not found")))]
+        (validate (cond (nil? found-user)
+                        (str "User " username " not found")))]
        [:password :error
-        (validate (cond (and (some? found-user) (not correct)) (str "Wrong password for user " username)))]
+        (validate (cond (and (some? found-user) (not correct))
+                        (str "Wrong password for user " username)))]
        (field-errors fields :login)
        [:private :user
-        (validate correct found-user)])]
+        (validate correct
+                  found-user)])]
      state)))
 
 (defn register [state session]
@@ -44,12 +47,17 @@
       [(paths/data session)
        (s/multi-path
         [:username :error
-         (validate (cond (empty? username) "Please supply username"
-                         (some? (user-by-name state username)) (str "User " username " already exists")))]
+         (validate (cond (empty? username)
+                         (str "Please supply username")
+                         (some? (user-by-name state username))
+                         (str "User " username " already exists")))]
         [:password :error
-         (validate (cond (empty? password) "Please supply password"))]
+         (validate (cond (empty? password)
+                         (str "Please supply password")))]
         [:password-repeat :error
-         (validate (cond (not= password password-repeat) "Passwords must match"))]
+         (validate (cond (not= password password-repeat)
+                         (str "Passwords must match")))]
         (field-errors fields :register))]
-      [(s/if-path [(paths/data session) :register :error #(empty? %)] [:users s/NONE-ELEM (s/terminal-val {:username username :password password})])])
+      [(s/if-path [(paths/data session) :register :error #(empty? %)]
+                  [:users s/NONE-ELEM (s/terminal-val {:username username :password password})])])
      state)))
