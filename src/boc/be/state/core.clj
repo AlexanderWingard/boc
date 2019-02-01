@@ -3,14 +3,10 @@
    [boc.be.state.sessions :as sessions]
    [boc.be.state.users :as users]
    [boc.be.state.paths :as paths]
-   [com.rpl.specter :as s]))
+   [com.rpl.specter :as s]
+   [axw.deep :refer [deep-merge]]))
 
 (def data-and-channels sessions/data-and-channels)
-
-(defn deep-merge [a b]
-  (if (and (map? a) (map? b))
-    (merge-with deep-merge a b)
-    b))
 
 (defn update-data [state session data]
   (s/transform (paths/data session) #(deep-merge % data) state))

@@ -1,6 +1,7 @@
 (ns boc.fe.state
   (:require
    [axw.ws :as ws]
+   [axw.deep :refer [deep-diff-keep]]
    [reagent.core :as r]
    ))
 
@@ -8,25 +9,13 @@
 (defonce ws-state (r/atom "offline"))
 (declare ws)
 
-(defn deep-diff [old new]
-  (reduce-kv
-   (fn [acc k new-val]
-     (let [old-val (get old k)]
-       (if (= old-val new-val)
-         acc
-         (if (map? new-val)
-           (if-some [child (deep-diff old-val new-val)] (assoc acc k child) acc)
-           (assoc acc k new-val)))))
-   (select-keys new [:session])
-   new))
-
 (defn update-state-reset [new]
   (->> (reset! state new)
        (ws/send ws)))
 
 (defn update-state-field [ks value]
   (->> (swap-vals! state #(-> % (update :seq-nr inc) (assoc-in ks value)))
-       (apply deep-diff)
+       (apply deep-diff-keep [:session])
        (ws/send ws)))
 
 (defn is-online []
