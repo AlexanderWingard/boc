@@ -2,19 +2,25 @@
   (:require
    [boc.be.state.core :as state]
    [axw.ws-server :as server]
+   [axw.deep :refer [deep-merge deep-diff]]
    [clojure.pprint :refer [pprint]]
    ))
 
-(defn broadcast [state]
+(defn broadcast [state msg from]
   (let [state-str (with-out-str (pprint state))]
     (doseq [[data channels] (state/data-and-channels state)]
-      (let [string (pr-str (assoc data :debug state-str))]
-        (doseq [c channels] (server/send! c string))))))
+      (let [data (assoc data :debug state-str)]
+        (doseq [c channels]
+          (->> (if (= c from)
+                 (deep-diff msg data)
+                 data)
+               (pr-str)
+               (server/send! c)))))))
 
 (defn on-msg [channel state msg]
   (-> state
       (swap! state/handle-msg channel msg)
-      (broadcast)))
+      (broadcast msg channel)))
 
 (defn on-close [channel state]
   (on-msg channel state {:intent :leave-session}))

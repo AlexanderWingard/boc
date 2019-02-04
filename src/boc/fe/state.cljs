@@ -1,7 +1,7 @@
 (ns boc.fe.state
   (:require
    [axw.ws :as ws]
-   [axw.deep :refer [deep-diff-keep]]
+   [axw.deep :refer [deep-diff-keep deep-merge]]
    [reagent.core :as r]
    ))
 
@@ -22,8 +22,7 @@
   (= "online" @ws-state))
 
 (defn ws-receive [data]
-  (when (>= (:seq-nr data) (:seq-nr @state))
-    (reset! state data)))
+  (swap! state deep-merge data))
 
 (defn ws-open []
   (reset! ws-state "online")
