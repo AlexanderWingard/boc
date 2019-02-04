@@ -1,7 +1,7 @@
 (ns boc.deep-test
   (:require
    [clojure.test :as t :refer [deftest is testing]]
-   [axw.deep :refer [deep-diff deep-diff-keep]]
+   [axw.deep :refer [deep-merge deep-diff deep-diff-keep]]
    ))
 
 (deftest deep-diff-test
@@ -26,3 +26,18 @@
           {:a {:aa 20
                :ab 10}
            :b 20}))))
+
+(deftest deep-merge-test
+  (is (= {:a {:aa 20} :b {:bb 20}}
+         (deep-merge
+          {:a {:aa 10} :b 10}
+          {:a {:aa 20} :b {:bb 20}}))))
+
+(deftest deep-swap-test
+  (let [state (atom {:a {:aa 10}})
+        request {:b {:bb 20}}
+        [old new] (swap-vals! state #(-> %
+                                         (deep-merge request)
+                                         (assoc-in [:a :aa] 20)))
+        response (deep-diff request new)]
+    (is (= {:a {:aa 20}} response))))
