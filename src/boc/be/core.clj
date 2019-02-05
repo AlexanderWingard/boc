@@ -6,20 +6,24 @@
    [clojure.pprint :refer [pprint]]
    ))
 
-(defn broadcast [state msg from]
-  (let [state-str (with-out-str (pprint state))]
-    (doseq [[data channels] (state/data-and-channels state)]
+(defn broadcast [[old new] msg from]
+  (let [state-str (with-out-str (pprint new))
+        old-data (state/data-and-channels old)]
+    (doseq [[session {:keys [data channels]}] (state/data-and-channels new)]
       (let [data (assoc data :debug state-str)]
         (doseq [c channels]
-          (->> (if (= c from)
-                 (deep-diff msg data)
-                 data)
+          (->> (if (and (= c from) (= :join-session (:intent msg)))
+                 data
+                 (deep-diff (get-in old-data [session :data])
+                            (if (= c from)
+                              (deep-diff msg data)
+                              data)))
                (pr-str)
                (server/send! c)))))))
 
 (defn on-msg [channel state msg]
   (-> state
-      (swap! state/handle-msg channel msg)
+      (swap-vals! state/handle-msg channel msg)
       (broadcast msg channel)))
 
 (defn on-close [channel state]

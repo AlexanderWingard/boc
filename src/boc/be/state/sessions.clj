@@ -22,4 +22,10 @@
                      state))
 
 (defn data-and-channels [state]
-  (s/select [:sessions s/ALL (s/collect-one :data) :channels] state))
+  (reduce (fn [acc [session data channels]]
+            (assoc acc session {:data data :channels channels}))
+          {}
+          (s/select [:sessions s/ALL
+                     (s/collect-one [:data :session])
+                     (s/collect-one :data)
+                     :channels] state)))
