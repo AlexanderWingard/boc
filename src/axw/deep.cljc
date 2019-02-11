@@ -11,7 +11,7 @@
      (let [old-val (get old k)]
        (if (= old-val new-val)
          acc
-         (if (map? new-val)
+         (if (and (map? old-val) (map? new-val))
            (if-some [child (deep-diff old-val new-val)] (assoc acc k child) acc)
            (assoc acc k new-val)))))
    {}

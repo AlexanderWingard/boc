@@ -17,7 +17,7 @@
    key :error (s/terminal (fn [data _] (s/select [s/MAP-VALS :error #(some? %)] data)))])
 
 (defmacro validate [& body]
-  `(s/terminal (fn [prev#] (or (do ~@body) s/NONE))))
+  `(s/terminal (fn [prev#] (do ~@body))))
 
 (defn login [state session]
   (let [fields [:username :password]

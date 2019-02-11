@@ -21,6 +21,7 @@
      (when (some? error) [:div.ui.pointing.red.basic.label error])]))
 
 (defn intent-button [key label]
-  [:button.ui.button {:on-click #(state/update-state-field [:intent] key)
+  [:button.ui.button {:on-click #(state/send-intent key)
                       :class (when (not-empty (get-in @state/state [key :error])) "red")}
    label])
+

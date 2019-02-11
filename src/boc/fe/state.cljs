@@ -18,6 +18,9 @@
        (apply deep-diff-keep [:session])
        (ws/send ws)))
 
+(defn send-intent [intent]
+  (ws/send ws {:intent intent :session (:session @state)}))
+
 (defn is-online []
   (= "online" @ws-state))
 
@@ -26,7 +29,7 @@
 
 (defn ws-open []
   (reset! ws-state "online")
-  (update-state-reset {:intent :join-session}))
+  (send-intent :join-session))
 
 (defn ws-close []
   (reset! ws-state "offline"))

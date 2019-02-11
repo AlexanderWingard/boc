@@ -4,7 +4,8 @@
    [boc.be.state.paths :as paths]
    [clojure.test :as t :refer [deftest is testing]]
    [boc.test-util :refer :all]
-   [boc.be.state.paths :as paths]))
+   [boc.be.state.paths :as paths]
+   [axw.deep :as deep]))
 
 (def initial {:users [{:username "alex" :password "123"}]
               :sessions [{:data {:session "uuid"}}]})
@@ -12,6 +13,20 @@
 (def set-value (partial mk-set-value "uuid"))
 (def do-login #(users/login % "uuid"))
 (def do-register #(users/register % "uuid"))
+
+(deftest s-test
+  (s-assert {:a {:aa nil}} [:a :aa] nil))
+
+(deftest apa
+  (let [a {:intent :login, :session "default-1"}
+        b {:session "default-1",
+           :clients 1,
+           :seq-nr 16,
+           :username {:value "alex", :error nil},
+           :password {:error "Wrong password for user alex"},
+           :login {:error ["Wrong password for user alex"]},
+           :private {:user {:id 2, :username "alex", :password "123"}}}]
+    (is (= (dissoc b :session) (deep/deep-diff a b)))))
 
 (deftest login
   (-> initial

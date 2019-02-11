@@ -6,6 +6,7 @@
    ))
 
 (defn s-assert [data select expected]
+  (t/is (contains? (s/select-one (butlast select) data) (last select)))
   (t/is (= expected (s/select-one select data)))
   data)
 
