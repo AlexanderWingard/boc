@@ -35,8 +35,8 @@
                         (str "Wrong password for user " username)))]
        (field-errors fields :login)
        [:private :user
-        (validate correct
-                  found-user)])]
+        (validate (cond correct
+                        (select-keys found-user [:id :username])))])]
      state)))
 
 (defn register [state session]

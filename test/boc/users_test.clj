@@ -7,7 +7,7 @@
    [boc.be.state.paths :as paths]
    [axw.deep :as deep]))
 
-(def initial {:users [{:username "alex" :password "123"}]
+(def initial {:users [{:id 1 :username "alex" :password "123"}]
               :sessions [{:data {:session "uuid"}}]})
 (def error-assert (partial mk-error-assert "uuid"))
 (def set-value (partial mk-set-value "uuid"))
@@ -43,7 +43,11 @@
       (do-login)
       (error-assert :username nil)
       (error-assert :password nil)
-      ))
+      (s-assert [(paths/data "uuid") :private :user] {:id 1 :username "alex"})
+
+      (set-value :password "1234")
+      (do-login)
+      (s-assert [(paths/data "uuid") :private :user] nil)))
 
 (deftest register
   (-> initial
@@ -67,5 +71,4 @@
       (set-value :password-repeat "123")
       (do-register)
       (error-assert :register [])
-      (apply-assert users/user-by-name "andrej" {:username "andrej" :password "123"})
-      ))
+      (apply-assert users/user-by-name "andrej" {:username "andrej" :password "123"})))
