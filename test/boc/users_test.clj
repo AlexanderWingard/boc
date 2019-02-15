@@ -49,6 +49,24 @@
       (do-login)
       (s-assert [(paths/data "uuid") :private :user] nil)))
 
+(deftest allowed-views-test
+  (-> initial
+      (s-setval [(paths/data "uuid") :view] "accounts")
+      (users/ensure-allowed-view "uuid")
+      (s-assert [(paths/data "uuid") :view] "login")
+
+      (s-setval [(paths/data "uuid") :view] "register")
+      (users/ensure-allowed-view "uuid")
+      (s-assert [(paths/data "uuid") :view] "register")
+
+      (set-value :username "alex")
+      (set-value :password "123")
+      (do-login)
+
+      (s-setval [(paths/data "uuid") :view] "any")
+      (users/ensure-allowed-view "uuid")
+      (s-assert [(paths/data "uuid") :view] "any")))
+
 (deftest register
   (-> initial
       (do-register)

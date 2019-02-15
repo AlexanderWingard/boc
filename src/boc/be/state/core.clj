@@ -18,10 +18,14 @@
     :login (users/login state session)
     state))
 
+(defn handle-view [state session]
+  (users/ensure-allowed-view state session))
+
 (defn handle-msg [state channel msg]
   (let [session (or (:session msg) (rand-nth ["default-1" "default-2"]))
         intent (:intent msg)
         msg (dissoc msg :session :intent :private)]
     (-> state
         (update-data session msg)
-        (handle-intent intent channel session))))
+        (handle-intent intent channel session)
+        (handle-view session))))

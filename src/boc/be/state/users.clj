@@ -19,6 +19,15 @@
 (defmacro validate [& body]
   `(s/terminal (fn [prev#] (do ~@body))))
 
+(defn ensure-allowed-view [state session]
+  (s/transform [(paths/data session) (s/collect-one [:private :user]) :view]
+               (fn [user old]
+                 (cond
+                   (some? user) old
+                   (contains? #{"login" "register"} old) old
+                   :else "login"))
+               state))
+
 (defn login [state session]
   (let [fields [:username :password]
         {:keys [username password]} (field-values fields state (paths/data session))
