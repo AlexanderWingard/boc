@@ -1,7 +1,9 @@
 (ns boc.fe.core
   (:require
    [axw.ws :as ws]
-   [boc.fe.components.general :as gc]
+   [boc.fe.components.login :as login]
+   [boc.fe.components.register :as register]
+   [boc.fe.state :as state]
    [cljsjs.semantic-ui :as sem]
    [reagent.core :as r]
    ))
@@ -9,20 +11,10 @@
 (defn log [& data]
   (apply js/console.log data))
 
-(defn test-component []
-  [:div
-   [gc/state-debug]
-   [gc/online-status]
-   [:div.big-logo
-    [:h1"Bank of Charlie"]
-    [:div "Est. 2017"]]
-   [:div {:style {:max-width "400px" :margin "auto"}}
-    [:div.ui.form
-     [gc/input-field :username "Username"]
-     [gc/input-field :password "Password"]
-      [:div {:style {:text-align "center"}}
-       [gc/intent-button :login "Login"]
-       [:br]
-       [:a {:href "#register"} "Register new user"]]]]])
+(defn main-component []
+  (case (:view @state/state)
+    "login" [login/component]
+    "register" [register/component]
+    [:div]))
 
-(r/render [test-component] (js/document.getElementById "app"))
+(r/render [main-component] (js/document.getElementById "app"))

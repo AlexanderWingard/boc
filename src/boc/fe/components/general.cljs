@@ -25,3 +25,5 @@
                       :class (when (not-empty (get-in @state/state [key :error])) "red")}
    label])
 
+(defn state-href [ks value label]
+  [:a {:href "#" :on-click #(state/update-state-field ks value)} label])

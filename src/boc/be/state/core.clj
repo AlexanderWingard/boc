@@ -16,6 +16,7 @@
     :join-session (sessions/join state channel session)
     :leave-session (sessions/leave state channel)
     :login (users/login state session)
+    :register (users/register state session)
     state))
 
 (defn handle-view [state session]
