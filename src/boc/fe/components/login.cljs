@@ -12,4 +12,4 @@
     [:div {:style {:text-align "center"}}
      [gc/intent-button :login "Login"]
      [:br]
-     [gc/state-href [:view] "register" "Register new user"]]]])
+     [gc/state-href [:view] :register "Register new user"]]]])

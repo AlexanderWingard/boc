@@ -13,8 +13,8 @@
 
 (defn main-component []
   (case (:view @state/state)
-    "login" [login/component]
-    "register" [register/component]
+    :login [login/component]
+    :register [register/component]
     [:div]))
 
 (r/render [main-component] (js/document.getElementById "app"))

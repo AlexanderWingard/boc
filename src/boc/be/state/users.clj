@@ -24,8 +24,8 @@
                (fn [user old]
                  (cond
                    (some? user) old
-                   (contains? #{"login" "register"} old) old
-                   :else "login"))
+                   (contains? #{:login :register} old) old
+                   :else :login))
                state))
 
 (defn login [state session]
