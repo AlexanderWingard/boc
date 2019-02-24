@@ -19,5 +19,11 @@
 (defn mk-error-assert [session state key expected]
   (s-assert state [(paths/data session) key :error] expected))
 
+(defn mk-data-assert [session state keys expected]
+  (s-assert state (concat (paths/data session) keys) expected))
+
 (defn mk-set-value [session state key value]
   (s-setval state [(paths/data session) key :value] value))
+
+(defn mk-set-data [session state keys value]
+  (s-setval state (concat (paths/data session) keys) value))

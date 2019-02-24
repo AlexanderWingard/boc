@@ -10,7 +10,9 @@
 (def initial {:users [{:id 1 :username "alex" :password "123"}]
               :sessions [{:data {:session "uuid"}}]})
 (def error-assert (partial mk-error-assert "uuid"))
+(def data-assert (partial mk-data-assert "uuid"))
 (def set-value (partial mk-set-value "uuid"))
+(def set-data (partial mk-set-data "uuid"))
 (def do-login #(users/login % "uuid"))
 (def do-register #(users/register % "uuid"))
 
@@ -30,6 +32,7 @@
 
 (deftest login
   (-> initial
+      (set-data [:view] :login)
       (set-value :username "andrej")
       (do-login)
       (error-assert :username "User andrej not found")
@@ -38,34 +41,35 @@
       (set-value :username "alex")
       (do-login)
       (error-assert :password "Wrong password for user alex")
+      (data-assert [:view] :login)
 
       (set-value :password "123")
       (do-login)
       (error-assert :username nil)
       (error-assert :password nil)
-      (s-assert [(paths/data "uuid") :private :user] {:id 1 :username "alex"})
+      (data-assert [:private :user] {:id 1 :username "alex"})
 
       (set-value :password "1234")
       (do-login)
-      (s-assert [(paths/data "uuid") :private :user] nil)))
+      (data-assert [:private :user] nil)))
 
 (deftest allowed-views-test
   (-> initial
-      (s-setval [(paths/data "uuid") :view] :accounts)
+      (set-data [:view] :accounts)
       (users/ensure-allowed-view "uuid")
-      (s-assert [(paths/data "uuid") :view] :login)
+      (data-assert [:view] :login)
 
-      (s-setval [(paths/data "uuid") :view] :register)
+      (set-data [:view] :register)
       (users/ensure-allowed-view "uuid")
-      (s-assert [(paths/data "uuid") :view] :register)
+      (data-assert [:view] :register)
 
       (set-value :username "alex")
       (set-value :password "123")
       (do-login)
 
-      (s-setval [(paths/data "uuid") :view] :any)
+      (set-data [:view] :any)
       (users/ensure-allowed-view "uuid")
-      (s-assert [(paths/data "uuid") :view] :any)))
+      (data-assert [:view] :any)))
 
 (deftest register
   (-> initial
