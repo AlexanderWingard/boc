@@ -1,7 +1,7 @@
 (ns boc.deep-test
   (:require
    [clojure.test :as t :refer [deftest is testing]]
-   [axw.deep :refer [deep-merge deep-diff deep-diff-keep]]
+   [axw.deep :refer [deep-merge deep-diff deep-diff-2 deep-diff-keep]]
    ))
 
 (deftest deep-diff-test
@@ -25,7 +25,15 @@
            :b 20}
           {:a {:aa 20
                :ab 10}
-           :b 20}))))
+           :b 20})))
+  (is (= {:b nil :a {:aa 20 :ab nil}}
+         (deep-diff-2
+          {:a {:aa 10 :ab 10} :b 10}
+          {:a {:aa 20}})))
+  (is (= {:b nil :a 20}
+         (deep-diff-2
+          {:a 10 :b 10}
+          {:a 20}))))
 
 (deftest deep-merge-test
   (is (= {:a {:aa 20} :b {:bb 20}}

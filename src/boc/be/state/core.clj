@@ -17,6 +17,8 @@
     :leave-session (sessions/leave state channel)
     :login (users/login state session)
     :register (users/register state session)
+    :register-view (update-data state session {:view :register})
+    :login-view (update-data state session {:view :login})
     state))
 
 (defn handle-view [state session]

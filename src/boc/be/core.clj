@@ -2,7 +2,7 @@
   (:require
    [boc.be.state.core :as state]
    [axw.ws-server :as server]
-   [axw.deep :refer [deep-merge deep-diff]]
+   [axw.deep :refer [deep-merge deep-diff deep-diff-2]]
    [clojure.pprint :refer [pprint]]
    ))
 
@@ -14,10 +14,11 @@
         (doseq [c channels]
           (->> (if (and (= c from) (= :join-session (:intent msg)))
                  data
-                 (deep-diff (get-in old-data [session :data])
-                            (if (= c from)
-                              (deep-diff msg data)
-                              data)))
+                 (let [diff (deep-diff-2 (get-in old-data [session :data])
+                                         data)]
+                   (if (= c from)
+                     (deep-diff msg diff)
+                     diff)))
                (pr-str)
                (server/send! c)))))))
 
