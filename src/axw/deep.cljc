@@ -1,4 +1,7 @@
-(ns axw.deep)
+(ns axw.deep
+  (:require
+   [clojure.set :as set]
+   ))
 
 (defn deep-merge [a b]
   (if (and (map? a) (map? b))
@@ -28,7 +31,7 @@
            (if-some [child (deep-diff-2 old-val new-val)] (assoc acc k child) acc)
            (assoc acc k new-val)))))
    (if (and (map? old) (map? new))
-     (reduce (fn [acc k] (assoc acc k nil)) {} (clojure.set/difference (set (keys old)) (set (keys new))))
+     (reduce (fn [acc k] (assoc acc k nil)) {} (set/difference (set (keys old)) (set (keys new))))
      {})
    new))
 

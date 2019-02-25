@@ -1,15 +1,44 @@
 (ns boc.be.core
   (:require
-   [boc.be.state.core :as state]
-   [axw.ws-server :as server]
    [axw.deep :refer [deep-merge deep-diff deep-diff-2]]
+   [axw.ws-server :as server]
+   [boc.be.state.paths :as paths]
+   [boc.be.state.sessions :as sessions]
+   [boc.be.state.users :as users]
    [clojure.pprint :refer [pprint]]
+   [com.rpl.specter :as s]
    ))
+
+(defn update-data [state session data]
+  (s/transform (paths/data session) #(deep-merge % data) state))
+
+(defn handle-intent [state intent channel session]
+  (case intent
+    :join-session (sessions/join state channel session)
+    :leave-session (sessions/leave state channel)
+    :login (users/login state session)
+    :logout (users/logout state session)
+    :register (users/register state session)
+    :register-view (update-data state session {:view :register})
+    :login-view (update-data state session {:view :login})
+    state))
+
+(defn handle-view [state session]
+  (users/ensure-allowed-view state session))
+
+(defn handle-msg [state channel msg]
+  (let [session (or (:session msg) (rand-nth ["default-1" "default-2"]))
+        intent (:intent msg)
+        msg (dissoc msg :session :intent :private)]
+    (-> state
+        (update-data session msg)
+        (handle-intent intent channel session)
+        (handle-view session))))
 
 (defn broadcast [[old new] msg from]
   (let [state-str (with-out-str (pprint new))
-        old-data (state/data-and-channels old)]
-    (doseq [[session {:keys [data channels]}] (state/data-and-channels new)]
+        old-data (sessions/data-and-channels old)]
+    (doseq [[session {:keys [data channels]}] (sessions/data-and-channels new)]
       (let [data (assoc data :debug state-str)]
         (doseq [c channels]
           (->> (if (and (= c from) (= :join-session (:intent msg)))
@@ -24,7 +53,7 @@
 
 (defn on-msg [channel state msg]
   (-> state
-      (swap-vals! state/handle-msg channel msg)
+      (swap-vals! handle-msg channel msg)
       (broadcast msg channel)))
 
 (defn on-close [channel state]

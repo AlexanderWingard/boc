@@ -48,10 +48,18 @@
       (error-assert :username nil)
       (error-assert :password nil)
       (data-assert [:private :user] {:id 1 :username "alex"})
+      (data-assert [:view] :main)
 
       (set-value :password "1234")
       (do-login)
       (data-assert [:private :user] nil)))
+
+(deftest logout-test
+  (-> initial
+      (set-data [:private :user] {:id 1 :username "alex"})
+      (data-assert [:private :user] {:id 1 :username "alex"})
+      (users/logout "uuid")
+      (data-assert [:view] :login)))
 
 (deftest allowed-views-test
   (-> initial

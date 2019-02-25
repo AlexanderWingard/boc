@@ -45,8 +45,12 @@
        (field-errors fields :login)
        [:private :user
         (validate (cond correct
-                        (select-keys found-user [:id :username])))])]
+                        (select-keys found-user [:id :username])))]
+       [:view (s/terminal (fn [prev] (if correct :main prev)))])]
      state)))
+
+(defn logout [state session]
+  (s/setval (paths/data session) {:session session :view :login} state))
 
 (defn register [state session]
   (let [fields [:username :password :password-repeat]
