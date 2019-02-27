@@ -1,6 +1,6 @@
 (ns boc.be.core
   (:require
-   [axw.deep :refer [deep-merge deep-diff deep-diff-2]]
+   [axw.deep :refer [deep-merge deep-diff]]
    [axw.ws-server :as server]
    [boc.be.state.paths :as paths]
    [boc.be.state.sessions :as sessions]
@@ -35,21 +35,27 @@
         (handle-intent intent channel session)
         (handle-view session))))
 
-(defn broadcast [[old new] msg from]
+(defn broadcast-int [[old new] msg from]
   (let [state-str (with-out-str (pprint new))
-        old-data (sessions/data-and-channels old)]
-    (doseq [[session {:keys [data channels]}] (sessions/data-and-channels new)]
-      (let [data (assoc data :debug state-str)]
-        (doseq [c channels]
-          (->> (if (and (= c from) (= :join-session (:intent msg)))
-                 data
-                 (let [diff (deep-diff-2 (get-in old-data [session :data])
-                                         data)]
-                   (if (= c from)
-                     (deep-diff msg diff)
-                     diff)))
-               (pr-str)
-               (server/send! c)))))))
+        old-channels-data (sessions/data-and-channels old)
+        new-channels-data (sessions/data-and-channels new)]
+    (mapcat
+     (fn [[session {new-data :data  channels :channels}]]
+       (let [new-data (assoc new-data :debug state-str)
+             old-data (get-in old-channels-data [session :data])
+             mk-diff (fn [return-to-sender]
+                       (if (and return-to-sender (= :join-session (:intent msg)))
+                         new-data
+                         (let [diff (deep-diff true old-data new-data)]
+                           (if return-to-sender
+                             (deep-diff false msg diff)
+                             diff))))]
+         (map (fn [channel] [channel (mk-diff (= channel from))]) channels)))
+     new-channels-data)))
+
+(defn broadcast [old-new msg from]
+  (doseq [[chan data] (broadcast-int old-new msg from)]
+    (server/send! chan (pr-str data))))
 
 (defn on-msg [channel state msg]
   (-> state

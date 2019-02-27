@@ -15,7 +15,7 @@
 
 (defn update-state-field [ks value]
   (->> (swap-vals! state #(-> % (update :seq-nr inc) (assoc-in ks value)))
-       (apply deep-diff-keep [:session])
+       (apply deep-diff-keep false [:session])
        (ws/send ws)))
 
 (defn send-intent [intent]

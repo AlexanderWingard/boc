@@ -19,17 +19,6 @@
 (deftest s-test
   (s-assert {:a {:aa nil}} [:a :aa] nil))
 
-(deftest apa
-  (let [a {:intent :login, :session "default-1"}
-        b {:session "default-1",
-           :clients 1,
-           :seq-nr 16,
-           :username {:value "alex", :error nil},
-           :password {:error "Wrong password for user alex"},
-           :login {:error ["Wrong password for user alex"]},
-           :private {:user {:id 2, :username "alex", :password "123"}}}]
-    (is (= (dissoc b :session) (deep/deep-diff a b)))))
-
 (deftest login
   (-> initial
       (set-data [:view] :login)
