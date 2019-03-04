@@ -12,7 +12,7 @@
            :cider {:extra-paths ["test"]
                    :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
                                 com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
-                                cider/piggieback {:mvn/version "0.3.10"}}
+                                cider/piggieback {:mvn/version "0.4.0"}}
                    :main-opts ["--init" "src/boc/be/core.clj" "--eval" "(boc.be.core/-main)"]
                    }
 
