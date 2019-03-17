@@ -2,10 +2,15 @@
   (:require
    [boc.be.state.paths :as paths]
    [com.rpl.specter :as s]
+   [clojure.string :refer [lower-case trim]]
    ))
 
+(defn trim-lower-compare [a b]
+  (= (lower-case (trim a))
+     (lower-case (trim b))))
+
 (defn user-by-name [state name]
-  (s/select-one [:users s/ALL (s/selected? [:username (s/pred= name)])] state))
+  (s/select-one [:users s/ALL (s/selected? [:username #(trim-lower-compare % name)])] state))
 
 (defn field-values [fields state session-path]
   (->> state

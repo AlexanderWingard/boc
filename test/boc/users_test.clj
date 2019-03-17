@@ -19,6 +19,11 @@
 (deftest s-test
   (s-assert {:a {:aa nil}} [:a :aa] nil))
 
+(deftest case-test
+  (-> initial
+      (users/user-by-name "AleX")
+      (s-assert [:id] 1)))
+
 (deftest login
   (-> initial
       (set-data [:view] :login)
