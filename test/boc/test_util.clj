@@ -14,7 +14,8 @@
   (s/setval apath aval structure))
 
 (defn apply-assert [state func & args]
-  (t/is (= (last args) (apply func state (butlast args)))))
+  (t/is (= (last args) (apply func state (butlast args))))
+  state)
 
 (defn mk-error-assert [session state key expected]
   (s-assert state [(paths/data session) key :error] expected))

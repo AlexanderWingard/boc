@@ -95,4 +95,6 @@
       (set-value :password-repeat "123")
       (do-register)
       (error-assert :register [])
-      (apply-assert users/user-by-name "andrej" {:username "andrej" :password "123"})))
+      (apply-assert users/user-by-name "andrej" {:username "andrej" :password "123"})
+      (data-assert [:view] :main)
+      (data-assert [:private :user :username] "andrej")))

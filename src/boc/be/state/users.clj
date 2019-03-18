@@ -77,5 +77,8 @@
                          (str "Passwords must match")))]
         (field-errors fields :register))]
       [(s/if-path [(paths/data session) :register :error #(empty? %)]
-                  [:users s/NONE-ELEM (s/terminal-val {:username username :password password})])])
+                  (s/multi-path
+                   [:users s/NONE-ELEM (s/terminal-val {:username username :password password})]
+                   [(paths/data session) (s/multi-path [:private :user :username (s/terminal-val username)]
+                                                       [:view (s/terminal-val :main)])]))])
      state)))
