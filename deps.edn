@@ -7,24 +7,50 @@
         ring-cljsjs {:mvn/version "0.1.0"}
         cljsjs/semantic-ui {:mvn/version "2.3.1-0"}}
  :paths ["src" "target" "resources"]
- :aliases {:cljsbuild {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.439"}}
-                       :main-opts ["-m" "cljs.main" "-co" "cljsbuild.edn" "--compile" "boc.fe.core"]}
-           :cider {:extra-paths ["test"]
-                   :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
-                                com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
-                                cider/piggieback {:mvn/version "0.4.0"}}
-                   :main-opts ["--init" "src/boc/be/core.clj" "--eval" "(boc.be.core/-main)"]
-                   }
+ :aliases {:cljsbuild
+           {:extra-deps {org.clojure/clojurescript
+                         {:mvn/version "1.10.439"}}
+            :main-opts ["-m" "cljs.main" "-co" "cljsbuild.edn" "--compile" "boc.fe.core"]}
 
-           :figwheel {:extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
-                                   com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
-                                   cider/piggieback {:mvn/version "0.3.10"}}
-                      :main-opts ["--init" "src/boc/be/core.clj" "--eval" "(boc.be.core/-main)" "-m" "figwheel.main" "-b" "dev" "-r"]
-                      }
-           :pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
-                                                :sha "24863d1ff5a54bb7cc783ff62272212b51c8b316"}}
-                  :main-opts ["-m" "mach.pack.alpha.capsule" "boc.jar" "--main boc.be.core" "--extra-path" "resources"]}
-           :test {:extra-paths ["test"]
-                  :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
-                                                          :sha "028a6d41ac9ac5d5c405dfc38e4da6b4cc1255d5"}}
-                  :main-opts ["-m" "cognitect.test-runner"]}}}
+           :cider
+           {:extra-paths ["test"]
+            :extra-deps {com.bhauman/figwheel-main
+                         {:mvn/version "0.2.1-SNAPSHOT"}
+
+                         com.bhauman/rebel-readline-cljs
+                         {:mvn/version "0.1.4"}
+
+                         cider/piggieback
+                         {:mvn/version "0.4.0"}}
+            :main-opts ["--init" "src/boc/be/core.clj"
+                        "--eval" "(boc.be.core/-main)"]}
+
+           :figwheel
+           {:extra-deps {com.bhauman/figwheel-main
+                         {:mvn/version "0.2.1-SNAPSHOT"}
+
+                         com.bhauman/rebel-readline-cljs
+                         {:mvn/version "0.1.4"}
+
+                         cider/piggieback
+                         {:mvn/version "0.3.10"}}
+            :main-opts ["--init" "src/boc/be/core.clj"
+                        "--eval" "(boc.be.core/-main)"
+                        "-m" "figwheel.main"
+                        "-b" "dev"
+                        "-r"]}
+           :pack
+           {:extra-deps {pack/pack.alpha
+                         {:git/url "https://github.com/juxt/pack.alpha.git"
+                          :sha "24863d1ff5a54bb7cc783ff62272212b51c8b316"}}
+            :main-opts ["-m" "mach.pack.alpha.capsule"
+                        "boc.jar"
+                        "--main boc.be.core"
+                        "--extra-path" "resources"]}
+
+           :test
+           {:extra-paths ["test"]
+            :extra-deps {com.cognitect/test-runner
+                         {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                          :sha "028a6d41ac9ac5d5c405dfc38e4da6b4cc1255d5"}}
+            :main-opts ["-m" "cognitect.test-runner"]}}}

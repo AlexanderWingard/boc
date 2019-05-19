@@ -1,4 +1,2 @@
-{
- :css-dirs ["resources/public/css"]
- :open-url false
-}
+{:css-dirs ["resources/public/css"]
+ :open-url false}

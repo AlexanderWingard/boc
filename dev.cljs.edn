@@ -1,4 +1,3 @@
 {:main boc.fe.core
  :output-dir "resources/public/cljs/dev"
- :output-to "resources/public/cljs/main.js"
-}
+ :output-to "resources/public/cljs/main.js"}
