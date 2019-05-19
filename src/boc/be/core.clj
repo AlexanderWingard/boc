@@ -57,9 +57,16 @@
   (doseq [[chan data] (broadcast-int old-new msg from)]
     (server/send! chan (pr-str data))))
 
+(defn persist [old-new]
+  (let [[old new] (map #(dissoc % :sessions) old-new)]
+    (if-not (= old new)
+      (println new)))
+  old-new)
+
 (defn on-msg [channel state msg]
   (-> state
       (swap-vals! handle-msg channel msg)
+      (persist)
       (broadcast msg channel)))
 
 (defn on-close [channel state]
