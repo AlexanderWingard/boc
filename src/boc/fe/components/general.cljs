@@ -1,7 +1,7 @@
 (ns boc.fe.components.general
   (:require
    [boc.fe.state :as state]
-   ))
+   [reagent.core :as r]))
 
 (defn online-status []
   [:i.ws-status {:class (if (state/is-online) ["blue" "cloud" "icon"]["red" "x" "icon"])}])
@@ -25,5 +25,18 @@
                       :class (when (not-empty (get-in @state/state [key :error])) "red")}
    label])
 
-(defn state-href [key label]
-  [:a {:href "#" :on-click #(state/send-intent key)} label])
+(defn state-button [ks value label]
+  [:button.ui.button {:on-click #(state/update-state-field ks value)}
+   label])
+
+(defn state-href [ks value label]
+  [:a {:href "#" :on-click #(state/update-state-field ks value)} label])
+
+(defn modal [body]
+  (r/create-class
+   {:display-name "A modal"
+    :component-did-mount (fn [this] (doto (.children (js/$ (r/dom-node this)) ".modal")
+                                      (.modal #js {:closable false})
+                                      (.modal "show")))
+    :component-will-unmount (fn [this] (.modal (js/$ ".modal") "hide") (js/console.log "remove modals"))
+    :reagent-render (fn [body] [:div body])}))

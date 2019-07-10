@@ -18,8 +18,11 @@
        (apply deep-diff-keep false [:session])
        (ws/send ws)))
 
-(defn send-intent [intent]
-  (ws/send ws {:intent intent :session (:session @state)}))
+(defn send-intent
+  ([intent]
+   (send-intent intent nil))
+  ([intent extra]
+   (ws/send ws (merge extra {:intent intent :session (:session @state)}))))
 
 (defn is-online []
   (= "online" @ws-state))

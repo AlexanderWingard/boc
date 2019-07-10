@@ -10,3 +10,8 @@
 (defn data [s]
   [(session s) :data])
 
+(defn user-id [s]
+  [(data s) :private :user :id])
+
+(defn session-ids []
+  [:sessions s/ALL :data :session])

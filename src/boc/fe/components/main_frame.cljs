@@ -7,7 +7,7 @@
 (defn menu []
   [:div.ui.menu
    [:div.right.menu
-    (update (gc/state-href :logout (str "Logout " (get-in @state/state [:private :user :username]))) 1 assoc :class "ui item")]])
+    (gc/intent-button :logout (str "Logout " (get-in @state/state [:private :user :username])))]])
 
 (defn component [content]
   [:div

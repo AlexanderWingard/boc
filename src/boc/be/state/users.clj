@@ -3,6 +3,7 @@
    [boc.be.state.paths :as paths]
    [com.rpl.specter :as s]
    [clojure.string :refer [lower-case trim]]
+   [boc.be.state.util :refer :all]
    ))
 
 (defn trim-lower-compare [a b]
@@ -12,17 +13,8 @@
 (defn user-by-name [state name]
   (s/select-one [:users s/ALL (s/selected? [:username #(trim-lower-compare % name)])] state))
 
-(defn field-values [fields state session-path]
-  (->> state
-       (s/select [session-path (s/submap fields) s/ALL (s/collect-one s/FIRST) s/LAST :value])
-       (into {})))
-
-(defn field-errors [fields key]
-  [(s/collect-one (s/submap fields))
-   key :error (s/terminal (fn [data _] (s/select [s/MAP-VALS :error #(some? %)] data)))])
-
-(defmacro validate [& body]
-  `(s/terminal (fn [prev#] (do ~@body))))
+(defn current [state session]
+  (s/select-one (paths/user-id session) state))
 
 (defn ensure-allowed-view [state session]
   (s/transform [(paths/data session) (s/collect-one [:private :user]) :view]
@@ -78,7 +70,7 @@
         (field-errors fields :register))]
       [(s/if-path [(paths/data session) :register :error #(empty? %)]
                   (s/multi-path
-                   [:users s/NONE-ELEM (s/terminal-val {:username username :password password})]
+                   [:users s/NONE-ELEM (s/terminal-val {:id (uuid) :username username :password password})]
                    [(paths/data session) (s/multi-path [:private :user :username (s/terminal-val username)]
                                                        [:view (s/terminal-val :main)])]))])
      state)))

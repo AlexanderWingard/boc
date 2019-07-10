@@ -6,4 +6,6 @@
 
 (defn component []
   [main-frame/component
-   "Welcome"])
+   [:div
+    (gc/state-href [:view] :accounts "Accounts")
+    "Welcome"]])

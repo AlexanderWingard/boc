@@ -4,6 +4,7 @@
    [boc.fe.components.login :as login]
    [boc.fe.components.register :as register]
    [boc.fe.components.main :as main]
+   [boc.fe.components.accounts :as accounts]
    [boc.fe.state :as state]
    [cljsjs.semantic-ui :as sem]
    [reagent.core :as r]
@@ -17,6 +18,7 @@
     :login [login/component]
     :register [register/component]
     :main [main/component]
+    :accounts [accounts/component]
     [:div]))
 
 (r/render [main-component] (js/document.getElementById "app"))

@@ -2,9 +2,11 @@
   (:require
    [axw.deep :refer [deep-merge deep-diff]]
    [axw.ws-server :as server]
+   [boc.be.state.util :refer :all]
    [boc.be.state.paths :as paths]
    [boc.be.state.sessions :as sessions]
    [boc.be.state.users :as users]
+   [boc.be.state.accounts :as accounts]
    [clojure.pprint :refer [pprint]]
    [com.rpl.specter :as s]
    ))
@@ -19,12 +21,19 @@
     :login (users/login state session)
     :logout (users/logout state session)
     :register (users/register state session)
-    :register-view (update-data state session {:view :register})
-    :login-view (update-data state session {:view :login})
-    state))
+    :accounts/delete  (accounts/delete-account state session)
+    :accounts/add  (accounts/add-account state session)
+    nil state
+    (do (println "Unknown intent: " intent) state)))
 
-(defn handle-view [state session]
-  (users/ensure-allowed-view state session))
+(defn update-views [state]
+  (reduce (fn [state session]
+            (let [state (users/ensure-allowed-view state session)]
+              (case (s/select-one [(paths/data session) :view] state)
+                :accounts (accounts/view state session)
+                state)))
+          state
+          (s/select (paths/session-ids) state)))
 
 (defn handle-msg [state channel msg]
   (let [session (or (:session msg) (rand-nth ["default-1" "default-2"]))
@@ -33,7 +42,7 @@
     (-> state
         (update-data session msg)
         (handle-intent intent channel session)
-        (handle-view session))))
+        (update-views))))
 
 (defn broadcast-int [[old new] msg from]
   (let [state-str (with-out-str (pprint new))
@@ -73,8 +82,8 @@
   (on-msg channel state {:intent :leave-session}))
 
 (defonce state (atom {:users [
-                              {:id 1 :username "andrej" :password "123"}
-                              {:id 2 :username "alex" :password "123"}
+                              {:id (uuid) :username "andrej" :password "123"}
+                              {:id (uuid) :username "alex" :password "123"}
                               ]}))
 
 (defn -main [& args]
