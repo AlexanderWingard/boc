@@ -1,7 +1,8 @@
 (ns boc.fe.components.general
   (:require
    [boc.fe.state :as state]
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   [calendar-ui]))
 
 (defn online-status []
   [:i.ws-status {:class (if (state/is-online) ["blue" "cloud" "icon"]["red" "x" "icon"])}])
@@ -18,6 +19,20 @@
       [:input {:type "text"
                :value (get-in state [key :value])
                :on-change #(state/update-state-field [key :value] (-> % .-target .-value))}]]
+     (when (some? error) [:div.ui.pointing.red.basic.label error])]))
+
+(defn calendar-input-field [key label]
+  (let [state @state/state
+        me (r/current-component)
+        error (get-in state [key :error])]
+    [:div.field {:class (when (some? error) "error")}
+     [:label label]
+     [:div.ui.large.input
+      [:input {:type "text"
+               :value (get-in state [key :value])
+               :on-change #(state/update-state-field [key :value] (-> % .-target .-value))
+               :on-focus (fn [this] (doto (js/$ (r/dom-node me))
+                                      (.calendar #js {:onChange (fn [date text mode] (state/update-state-field [key :value] text))})))}]]
      (when (some? error) [:div.ui.pointing.red.basic.label error])]))
 
 (defn intent-button [key label]
