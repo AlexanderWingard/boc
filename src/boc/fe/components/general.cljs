@@ -1,11 +1,15 @@
 (ns boc.fe.components.general
   (:require
+   [cljs.pprint :refer [pprint]]
    [boc.fe.state :as state]
    [reagent.core :as r]
    [calendar-ui]))
 
 (defn online-status []
   [:i.ws-status {:class (if (state/is-online) ["blue" "cloud" "icon"]["red" "x" "icon"])}])
+
+(defn dbg [d]
+  (with-out-str (pprint d)))
 
 (defn state-debug []
   [:pre {:class "debug"} (:debug @state/state)])
@@ -47,11 +51,15 @@
 (defn state-href [ks value label]
   [:a {:href "#" :on-click #(state/update-state-field ks value)} label])
 
-(defn modal [body]
+(defn modal [& body]
   (r/create-class
    {:display-name "A modal"
-    :component-did-mount (fn [this] (doto (.children (js/$ (r/dom-node this)) ".modal")
+    :component-did-mount (fn [this] (doto (js/$ "#modal")
                                       (.modal #js {:closable false})
                                       (.modal "show")))
-    :component-will-unmount (fn [this] (.modal (js/$ ".modal") "hide") (js/console.log "remove modals"))
-    :reagent-render (fn [body] [:div body])}))
+    :component-will-unmount (fn [this] (doto (js/$ "#modal")
+                                         (.modal "hide")
+                                         (.remove)))
+    :reagent-render (fn [& body] [:div [:div.ui.modal {:id "modal"} body]])}))
+
+

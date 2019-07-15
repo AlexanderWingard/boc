@@ -7,11 +7,13 @@
    ))
 
 (defn view [state session]
-  (s/transform [(s/collect-one [:accounts])
-                (paths/data session) :accounts]
-               (fn [accounts old]
-                 accounts)
-               state))
+  (s/multi-transform [(s/collect-one [:accounts])
+                      (s/collect-one [:transactions])
+                      (paths/data session)
+                      (s/multi-path
+                       [:accounts (s/terminal (fn [accounts _ _] accounts))]
+                       [:transactions (s/terminal (fn [_ transactions _] transactions))])]
+                     state))
 
 (defn delete-account  [state session]
   (let [id (s/select-one [(paths/data session) :accounts/delete-id] state)]
@@ -42,4 +44,42 @@
                                           [:add-account-view (s/terminal-val s/NONE)])]
                    ))]
       )
+     state)))
+
+(defn read-num [s]
+  (try (let [num (read-string s)]
+         (if (number? num)
+           num))
+       (catch Exception e nil)))
+
+(defn add-transaction [state session]
+  (let [fields [:transaction-name :transaction-date :transaction-amount]
+        {:keys [transaction-name transaction-date transaction-amount]} (field-values fields state (paths/data session))
+        account (s/select-one [(paths/data session) :accounts/edit] state)]
+    (s/multi-transform
+     (s/multi-path
+      [(paths/data session)
+       (s/multi-path
+        [:transaction-name :error
+         (validate (cond (empty? transaction-name)
+                         (str "Please give this transaction a name")))]
+        [:transaction-date :error
+         (validate (cond (empty? transaction-date)
+                         (str "Please supply the transaction date")))]
+        [:transaction-amount :error
+         (validate (cond (empty? transaction-amount)
+                         (str "Please supply the transaction amount")
+                         (nil? (read-num transaction-amount))
+                         (str "Not a valid number")))]
+        (field-errors fields :transactions/add))]
+      [(s/if-path [(paths/data session) :transactions/add :error #(empty? %)]
+                  (s/multi-path
+                   [:transactions s/NONE-ELEM (s/terminal-val {:id (uuid)
+                                                               :account account
+                                                               :name transaction-name
+                                                               :date transaction-date
+                                                               :amount transaction-amount})]
+                   [(paths/data session) (s/multi-path
+                                          [:add-transaction-view (s/terminal-val s/NONE)])])
+                  )])
      state)))

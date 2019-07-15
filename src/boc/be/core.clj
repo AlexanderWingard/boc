@@ -23,6 +23,7 @@
     :register (users/register state session)
     :accounts/delete  (accounts/delete-account state session)
     :accounts/add  (accounts/add-account state session)
+    :transactions/add (accounts/add-transaction state session)
     nil state
     (do (println "Unknown intent: " intent) state)))
 

@@ -69,8 +69,9 @@
                          (str "Passwords must match")))]
         (field-errors fields :register))]
       [(s/if-path [(paths/data session) :register :error #(empty? %)]
-                  (s/multi-path
-                   [:users s/NONE-ELEM (s/terminal-val {:id (uuid) :username username :password password})]
-                   [(paths/data session) (s/multi-path [:private :user :username (s/terminal-val username)]
-                                                       [:view (s/terminal-val :main)])]))])
+                  (let [new-user {:id (uuid) :username username :password password}]
+                    (s/multi-path
+                     [:users s/NONE-ELEM (s/terminal-val new-user)]
+                     [(paths/data session) (s/multi-path [:private :user (s/terminal-val (select-keys new-user [:id :username]))]
+                                                         [:view (s/terminal-val :main)])])))])
      state)))
