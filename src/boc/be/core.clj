@@ -69,8 +69,14 @@
 (defn persist [old-new]
   (let [[old new] (map #(dissoc % :sessions) old-new)]
     (if-not (= old new)
-      (println new)))
+      (spit "data.log" (str (pr-str new) "\n") :append true)))
   old-new)
+
+(defn unpersist []
+  (try
+    (with-open [rdr (clojure.java.io/reader "data.log")]
+      (-> rdr (line-seq) (last) (read-string)))
+    (catch Exception e {})))
 
 (defn on-msg [channel state msg]
   (-> state
@@ -81,10 +87,7 @@
 (defn on-close [channel state]
   (on-msg channel state {:intent :leave-session}))
 
-(defonce state (atom {:users [
-                              {:id (uuid) :username "andrej" :password "123"}
-                              {:id (uuid) :username "alex" :password "123"}
-                              ]}))
+(defonce state (atom (unpersist)))
 
 (defn -main [& args]
   (-> (server/new :port 8080 :on-msg (var on-msg) :on-close (var on-close) :state state)
