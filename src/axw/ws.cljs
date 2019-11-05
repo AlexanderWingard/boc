@@ -11,7 +11,7 @@
   (.open conn url))
 
 (defn ^:private handle-on-message [cb event]
-  (cb (reader/read-string (.-message event))))
+  (cb (.-message event)))
 
 (defn ^:private handle-on-close [cb event]
   (cb))
@@ -26,7 +26,7 @@
     (str protocol "//" host "/" resource)))
 
 (defn send [{:keys [conn] :as ws} data]
-  (try (.send conn (pr-str data))
+  (try (.send conn data)
        (catch goog.asserts.AssertionError e
          (connect ws))))
 

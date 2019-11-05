@@ -21,10 +21,10 @@
     right: 3px;
 }
 .debug {
-    position: absolute;
-    bottom: 0px;
-    left: 0px;
-    z-index: -1;
+    /* position: absolute; */
+    /* bottom: 0px; */
+    /* left: 0px; */
+    /* z-index: -1; */
     color: #bbb;
     font-size: 0.8rem ;
     line-height: initial;

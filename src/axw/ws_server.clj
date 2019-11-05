@@ -19,7 +19,7 @@
     (when-some [cb (::on-close @server)]
       (on-close channel (fn [status] (cb channel (::state @server)))))
     (when-some [cb (::on-msg @server)]
-      (on-receive channel (fn [string] (cb channel (::state @server) (edn/read-string string)))))))
+      (on-receive channel (fn [string] (cb channel (::state @server) string))))))
 
 (defn create-routes [server]
   (routes

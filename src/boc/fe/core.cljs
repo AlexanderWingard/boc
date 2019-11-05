@@ -1,24 +1,45 @@
 (ns boc.fe.core
   (:require
    [axw.ws :as ws]
-   [boc.fe.components.login :as login]
-   [boc.fe.components.register :as register]
-   [boc.fe.components.main :as main]
-   [boc.fe.components.accounts :as accounts]
-   [boc.fe.state :as state]
    [cljsjs.semantic-ui :as sem]
    [reagent.core :as r]
    ))
 
+(defonce state (r/atom {}))
+
+(declare ws)
+
 (defn log [& data]
   (apply js/console.log data))
 
+(defn ws-receive [data]
+  (swap! state update :messages conj data))
+
+(defn ws-open []
+  )
+
+(defn ws-close []
+  )
+
+(defonce ws (ws/new "ws"
+                    #((var ws-receive) %)
+                    #((var ws-open))
+                    #((var ws-close))))
+
+
 (defn main-component []
-  (case (:view @state/state)
-    :login [login/component]
-    :register [register/component]
-    :main [main/component]
-    :accounts [accounts/component]
-    [:div]))
+  [:div.ui.container
+   [:div.ui.fluid.action.input
+    [:input {:type "text" :placeholder "Json..."
+             :value (:input @state)
+             :on-change #(swap! state assoc :input (-> % .-target .-value))}]
+    [:div.ui.button {:on-click #(ws/send ws (:input @state))} "Send"]]
+   [:table.ui.compact.table
+    [:tbody
+     (for [m (:messages @state)]
+       [:tr
+        [:td
+         [:div m]]])]]])
+
 
 (r/render [main-component] (js/document.getElementById "app"))

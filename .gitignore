@@ -4,7 +4,6 @@ target/
 .nrepl-port
 resources/public/cljs/
 resources/deps/
-resources/public/css/calendar.min.css
 data.log
 out/
 boc.jar

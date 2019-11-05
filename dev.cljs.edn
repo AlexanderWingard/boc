@@ -1,6 +1,3 @@
 {:main boc.fe.core
- :foreign-libs [{:file "resources/deps/calendar.min.js"
-                 :provides ["calendar-ui"]
-                 :requires ["cljsjs.jquery"]}]
  :output-dir "resources/public/cljs/dev"
  :output-to "resources/public/cljs/main.js"}
