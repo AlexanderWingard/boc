@@ -19,12 +19,11 @@
 
 (defn on-connect [channel state]
   (swap! state update :channels conj channel)
-  (broadcast (json/write-str {:msg "join"})))
+  (broadcast (json/write-str {:msg "join" :channel (str channel)})))
 
 (defn on-close [channel state]
   (swap! state update :channels disj channel)
-  (broadcast (json/write-str {:msg "leave"})))
-
+  (broadcast (json/write-str {:msg "leave" :channel (str channel)})))
 
 (defn -main [& args]
   (-> (server/new :port 8080 :on-msg (var on-msg) :on-connect (var on-connect) :on-close (var on-close) :state state)

@@ -3,11 +3,18 @@
    [axw.ws :as ws]
    [cljsjs.semantic-ui :as sem]
    [reagent.core :as r]
+   [clojure.walk :refer [prewalk-replace]]
+   [json-html.core :as json-html]
    ))
 
 (defonce state (r/atom {}))
 
 (declare ws)
+
+(defn render-clojure [data]
+  (prewalk-replace
+   {:table.jh-type-object :table.jh-type-object.ui.selectable.celled.compact.table}
+   (json-html/json->hiccup data)))
 
 (defn log [& data]
   (apply js/console.log data))
@@ -34,12 +41,9 @@
              :value (:input @state)
              :on-change #(swap! state assoc :input (-> % .-target .-value))}]
     [:div.ui.button {:on-click #(ws/send ws (:input @state))} "Send"]]
-   [:table.ui.compact.table
-    [:tbody
-     (for [m (:messages @state)]
-       [:tr
-        [:td
-         [:div m]]])]]])
+   (for [m (:messages @state)]
+     (try [render-clojure (js/JSON.parse m)]
+          (catch js/Error e [:div m])))])
 
 
 (r/render [main-component] (js/document.getElementById "app"))
