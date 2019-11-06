@@ -1,8 +1,10 @@
 (ns boc.fe.core
   (:require
+   [cljs.reader :as reader]
    [axw.ws :as ws]
    [cljsjs.semantic-ui :as sem]
    [reagent.core :as r]
+   [com.rpl.specter :as s]
    [clojure.walk :refer [prewalk-replace]]
    [json-html.core :as json-html]
    ))
@@ -37,33 +39,56 @@
 (declare ws)
 
 (defn render-clojure [data]
-  (prewalk-replace
-   {:table.jh-type-object :table.jh-type-object.ui.unstackable.selectable.celled.compact.table}
-   (json-html/json->hiccup data)))
+  (-> (prewalk-replace
+       {:table.jh-type-object :table.jh-type-object.ui.unstackable.selectable.celled.compact.table}
+       (json-html/edn->hiccup (:data data)))
+      (assoc 0 (cond
+                 (not-empty (:acks data))
+                 :table.jh-type-object.ui.unstackable.selectable.celled.compact.green.table
+
+                 (:from-me data)
+                 :table.jh-type-object.ui.unstackable.selectable.celled.compact.red.table
+
+                 :default
+                 :table.jh-type-object.ui.unstackable.selectable.celled.compact.blue.table))))
 
 (defn log [& data]
   (apply js/console.log data))
 
-(defn ws-receive [data]
-  (swap! state update :messages conj data))
+(defn send-edn [data]
+  (->> data
+      (clj->js)
+      (js/JSON.stringify)
+      (ws/send ws)))
 
-(defn ws-open []
-  )
+(defn send-input []
+  (let [data (-> (:input @state)
+                 (reader/read-string)
+                 (assoc :id (str(random-uuid))))]
+    (send-edn data)
+    (swap! state #(-> %
+                      (update :messages conj {:from-me true :data data})
+                      (update :history conj (:input @state))
+                      (assoc :history-item 0)
+                      (assoc :input "")))))
 
-(defn ws-close []
-  )
+(defn ws-receive [s]
+  (let [data (-> s
+                 (js/JSON.parse)
+                 (js->clj :keywordize-keys true))]
+    (when (some? (:ack data))
+      (swap! state #(s/setval [:messages s/ALL (s/selected? :data :id (s/pred= (:ack data))) :acks s/NIL->SET s/NONE-ELEM] data %)))
+    (when (not= "ack" (:msg data))
+      (swap! state update :messages conj {:data data}))))
+
+(defn ws-open [])
+
+(defn ws-close [])
 
 (defonce ws (ws/new "ws"
                     #((var ws-receive) %)
                     #((var ws-open))
                     #((var ws-close))))
-
-(defn send-input []
-  (ws/send ws (:input @state))
-  (swap! state #(-> %
-                    (update :history conj (:input @state))
-                    (assoc :history-item 0)
-                    (assoc :input ""))))
 
 (defn nav-history [step]
   (let [history (:history @state)
@@ -71,8 +96,7 @@
     (swap! state update :history-item (fn [old]
                                         (-> (+ old step)
                                             (max 0)
-                                            (min len))))
-    )
+                                            (min len)))))
   (swap! state assoc :input
          (let [{:keys [history-item history]} @state]
            (if (= 0 history-item)
@@ -82,7 +106,7 @@
 (defn main-component []
   [:div.ui.container
    [:div.ui.fluid.action.large.input
-    [:input {:type "text" :placeholder "Json..."
+    [:input {:type "text" :placeholder "EDN..."
              :value (:input @state)
              :on-change #(swap! state assoc :input (-> % .-target .-value))
              :on-key-press (fn [e] (case (.-key e)
@@ -96,8 +120,6 @@
    (for [m (:messages @state)]
      [:div
       [:hr]
-      (try [render-clojure (js/JSON.parse m)]
-           (catch js/Error e [:div m]))])])
-
+      [render-clojure m]])])
 
 (r/render [main-component] (js/document.getElementById "app"))
