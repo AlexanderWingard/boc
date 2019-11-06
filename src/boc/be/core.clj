@@ -10,12 +10,13 @@
 
 (defonce state (atom {:channels #{}}))
 
-(defn broadcast [msg]
+(defn broadcast [msg & [sender]]
   (doseq [c (:channels @state)]
-    (server/send! c msg)))
+    (when (not= c sender)
+      (server/send! c msg))))
 
 (defn on-msg [channel state msg]
-  (broadcast msg))
+  (broadcast msg channel))
 
 (defn on-connect [channel state]
   (swap! state update :channels conj channel)

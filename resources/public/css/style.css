@@ -42,3 +42,19 @@ and (max-width: 736px) {
         font-size: 18px;
     }
 }
+
+.ui.compact.table th {
+    padding: 1px;
+}
+
+.ui.compact.table td {
+    padding: 1px;
+}
+.jh-value.jh-compact-array-value {
+    border: 1px solid rgba(34,36,38,.1);
+    margin: 1px;
+}
+
+.jh-compact-array-table {
+    table-layout: fixed;
+}
